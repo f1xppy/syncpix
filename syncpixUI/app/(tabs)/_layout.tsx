@@ -1,35 +1,26 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Tabs } from 'expo-router';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
+    <Tabs 
+      screenOptions={{ tabBarActiveTintColor: 'blue', 
+      headerShown: false,
+      tabBarStyle: { position: 'absolute' },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-          ),
+          title: 'Photos',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="image" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="settings"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
         }}
       />
     </Tabs>
