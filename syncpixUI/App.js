@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
@@ -8,6 +8,9 @@ const photoWidth = (width - 40) / 3; // Определяем ширину фот
 export default function App() {
   const [selectedTab, setSelectedTab] = useState('Фото');
   const [selectedPhoto, setSelectedPhoto] = useState(null); // Состояние для открытого фото
+  
+  //Text.defaultProps.style = {color:'#FFFFFF', fontFamily:'Roboto'}
+  //TextInput.defaultProps.style = {color:'#FFFFFF', fontFamily:'Roboto'}
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
@@ -136,15 +139,14 @@ const renderCollections = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#333333',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    padding: 0,
+    backgroundColor: '#222222',
   },
   title: {
     fontSize: 20,
@@ -158,13 +160,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    backgroundColor: '#222222',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   tab: {
     padding: 10,
+    color: '#FFFFFF',
   },
   selectedTab: {
-    backgroundColor: '#ccc',
+    color: '#8CE8E5',
   },
   photoContainer: {
     flexDirection: 'row',
@@ -209,5 +214,23 @@ const styles = StyleSheet.create({
     top: 20,
     left: 20,
     zIndex: 1,
+  },
+  headerBtnText: {
+    color: '#FFFFFF',
+    fontFamily: 'Roboto',
+    fontWeight: 'medium',
+    fontSize: 20,
+  },
+  headerBtnPressed: {
+    color: '#8CE8E5',
+    fontFamily: 'Roboto',
+    fontWeight: 'medium',
+    fontSize: 20,
+  },
+  menuText: {
+
+  },
+  defText: {
+
   },
 });
