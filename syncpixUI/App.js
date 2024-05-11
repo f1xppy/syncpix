@@ -33,9 +33,7 @@ export default function App() {
         </TouchableOpacity>
       </View>
       <View style={styles.tabs}>
-        <TouchableOpacity
-          
-        >
+        <TouchableOpacity>
           <Text onPress={() => handleTabPress('Фото')}style={[styles.tab, selectedTab === 'Фото' ? styles.selectedTab : null]}>Фото</Text>
         </TouchableOpacity>
         <TouchableOpacity>
@@ -45,11 +43,10 @@ export default function App() {
           <Text onPress={() => handleTabPress('Подборки')} style={[styles.tab, selectedTab === 'Подборки' ? styles.selectedTab : null]}>Подборки</Text>
         </TouchableOpacity>
       </View>
-      {/* Содержимое выбранной вкладки */}
       <ScrollView>
         {selectedTab === 'Фото' && (
           <View style={styles.photoContainer}>
-            {renderPhotos(openPhoto)} {/* Передаем функцию openPhoto */}
+            {renderPhotos(openPhoto)} 
           </View>
         )}
         {selectedTab === 'Альбомы' && (
@@ -64,7 +61,6 @@ export default function App() {
         )}
       </ScrollView>
 
-      {/* Модальное окно для открытия полного фото */}
       <Modal visible={selectedPhoto !== null} animationType="slide">
         <View style={styles.modalContainer}>
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
@@ -88,7 +84,7 @@ const renderPhotos = (onPress) => { // Принимаем функцию onPress
   ];
 
   return photos.map((photo, index) => (
-    <TouchableOpacity key={index} onPress={() => onPress(photo)}> {/* Вызываем onPress при нажатии */}
+    <TouchableOpacity key={index} onPress={() => onPress(photo)}>
       <Image source={photo} style={styles.photo} />
     </TouchableOpacity>
   ));
