@@ -26,6 +26,11 @@ export default function App() {
         </TouchableOpacity>
       </View>
       {/* Здесь будет содержимое выбранной вкладки */}
+      <ScrollView>
+        <View style={styles.photoContainer}>
+          {renderPhotos()}
+        </View>
+      </ScrollView>
     </View>
   );
 }
