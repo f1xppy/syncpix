@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const photoWidth = (width - 40) / 3; // Определяем ширину фотографии
 
 export default function App() {
   const [selectedTab, setSelectedTab] = useState('Фото');
+  const [selectedPhoto, setSelectedPhoto] = useState(null); // Состояние для открытого фото
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
+  };
+
+  const openPhoto = (photo) => {
+    setSelectedPhoto(photo);
+  };
+
+  const closePhoto = () => {
+    setSelectedPhoto(null);
   };
 
   return (
@@ -47,7 +56,7 @@ export default function App() {
       <ScrollView>
         {selectedTab === 'Фото' && (
           <View style={styles.photoContainer}>
-            {renderPhotos()}
+            {renderPhotos(openPhoto)} {/* Передаем функцию openPhoto */}
           </View>
         )}
         {selectedTab === 'Альбомы' && (
@@ -61,12 +70,23 @@ export default function App() {
           </View>
         )}
       </ScrollView>
+
+      {/* Модальное окно для открытия полного фото */}
+      <Modal visible={selectedPhoto !== null} animationType="slide">
+        <View style={styles.modalContainer}>
+          <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Image source={selectedPhoto} style={styles.fullPhoto} />
+          <Button title="Закрыть" onPress={closePhoto} />
+        </View>
+      </Modal>
     </View>
   );
 }
 
 // Функция для отображения фотографий из папки assets
-const renderPhotos = () => {
+const renderPhotos = (onPress) => { // Принимаем функцию onPress
   const photos = [
     require('./assets/photo1.jpg'),
     require('./assets/photo2.jpg'),
@@ -75,7 +95,9 @@ const renderPhotos = () => {
   ];
 
   return photos.map((photo, index) => (
-    <Image key={index} source={photo} style={styles.photo} />
+    <TouchableOpacity key={index} onPress={() => onPress(photo)}> {/* Вызываем onPress при нажатии */}
+      <Image source={photo} style={styles.photo} />
+    </TouchableOpacity>
   ));
 };
 
@@ -153,7 +175,7 @@ const styles = StyleSheet.create({
     width: photoWidth,
     height: photoWidth,
     borderRadius: 10,
-    margin: 3, // Обновленный стиль для фотографий
+    margin: 3,
   },
   albumContainer: {
     padding: 10,
@@ -170,5 +192,22 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50, // Добавляем отступ сверху для центрирования
+  },
+  fullPhoto: {
+    width: width - 40, // Ширина экрана с отступами по 20 с обеих сторон
+    height: height - 120, // Высота экрана с отступами сверху и снизу по 60
+    resizeMode: 'contain',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
   },
 });
