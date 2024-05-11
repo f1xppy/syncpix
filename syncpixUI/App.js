@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
@@ -8,9 +8,6 @@ const photoWidth = (width - 40) / 3; // Определяем ширину фот
 export default function App() {
   const [selectedTab, setSelectedTab] = useState('Фото');
   const [selectedPhoto, setSelectedPhoto] = useState(null); // Состояние для открытого фото
-  
-  //Text.defaultProps.style = {color:'#FFFFFF', fontFamily:'Roboto'}
-  //TextInput.defaultProps.style = {color:'#FFFFFF', fontFamily:'Roboto'}
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
@@ -37,22 +34,15 @@ export default function App() {
       </View>
       <View style={styles.tabs}>
         <TouchableOpacity
-          style={[styles.tab, selectedTab === 'Фото' ? styles.selectedTab : null]}
-          onPress={() => handleTabPress('Фото')}
+          
         >
-          <Text>Фото</Text>
+          <Text onPress={() => handleTabPress('Фото')}style={[styles.tab, selectedTab === 'Фото' ? styles.selectedTab : null]}>Фото</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'Альбомы' ? styles.selectedTab : null]}
-          onPress={() => handleTabPress('Альбомы')}
-        >
-          <Text>Альбомы</Text>
+        <TouchableOpacity>
+          <Text onPress={() => handleTabPress('Альбомы')} style={[styles.tab, selectedTab === 'Альбомы' ? styles.selectedTab : null]}>Альбомы</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'Подборки' ? styles.selectedTab : null]}
-          onPress={() => handleTabPress('Подборки')}
-        >
-          <Text>Подборки</Text>
+        <TouchableOpacity>
+          <Text onPress={() => handleTabPress('Подборки')} style={[styles.tab, selectedTab === 'Подборки' ? styles.selectedTab : null]}>Подборки</Text>
         </TouchableOpacity>
       </View>
       {/* Содержимое выбранной вкладки */}
@@ -167,9 +157,11 @@ const styles = StyleSheet.create({
   tab: {
     padding: 10,
     color: '#FFFFFF',
+    fontFamily: 'Roboto',
   },
   selectedTab: {
     color: '#8CE8E5',
+    fontFamily: 'Roboto',
   },
   photoContainer: {
     flexDirection: 'row',
