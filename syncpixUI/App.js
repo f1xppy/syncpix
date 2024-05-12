@@ -23,13 +23,19 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} >
+      <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer}>
-          <Image name="sync" size={24} color="#8CE8E5" width="48" height="40" source={require('./assets/UI_Elements/sync.png')} />
+          <Image
+            name="sync"
+            size={24}
+            color="#8CE8E5"
+            width="48"
+            height="40"
+            source={require("./assets/UI_Elements/sync.png")}
+          />
         </TouchableOpacity>
         <View>
-          <TextInput style={styles.searchBar} placeholder="Search">
-          </TextInput>
+          <TextInput style={styles.searchBar} placeholder="Search"></TextInput>
         </View>
         <TouchableOpacity style={styles.iconContainer}>
           <Ionicons name="settings" size={24} color="#8CE8E5" />
@@ -37,29 +43,74 @@ export default function App() {
       </View>
       <View style={styles.tabs}>
         <TouchableOpacity>
-          <Text onPress={() => handleTabPress('Фото')}style={[styles.tab, selectedTab === 'Фото' ? styles.selectedTab : null]}>Фото</Text>
+          <Text
+            onPress={() => handleTabPress("Фото")}
+            style={[
+              styles.tab,
+              selectedTab === "Фото" ? styles.selectedTab : null,
+            ]}
+          >
+            Фото
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Text onPress={() => handleTabPress('Альбомы')} style={[styles.tab, selectedTab === 'Альбомы' ? styles.selectedTab : null]}>Альбомы</Text>
+          <Text
+            onPress={() => handleTabPress("Альбомы")}
+            style={[
+              styles.tab,
+              selectedTab === "Альбомы" ? styles.selectedTab : null,
+            ]}
+          >
+            Альбомы
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Text onPress={() => handleTabPress('Подборки')} style={[styles.tab, selectedTab === 'Подборки' ? styles.selectedTab : null]}>Подборки</Text>
+          <Text
+            onPress={() => handleTabPress("Подборки")}
+            style={[
+              styles.tab,
+              selectedTab === "Подборки" ? styles.selectedTab : null,
+            ]}
+          >
+            Подборки
+          </Text>
         </TouchableOpacity>
       </View>
       <ScrollView>
-        {selectedTab === 'Фото' && (
-          <View style={styles.photoContainer}>
-            {renderPhotos(openPhoto)} 
+        {selectedTab === "Фото" && (
+          <View
+            style={styles.photoContainer}
+            onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
+            onTouchEnd={(e) => {
+              if (this.touchX - e.nativeEvent.pageX < -20) setSelectedTab("Альбомы");
+              else if (this.touchX - e.nativeEvent.pageX > 20) setSelectedTab("Подборки");
+            }}
+          >
+            {renderPhotos(openPhoto)}
           </View>
         )}
-        {selectedTab === 'Альбомы' && (
-          <View style={styles.albumContainer}>
+        {selectedTab === "Альбомы" && (
+          <View 
+            style={styles.albumContainer}
+            onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
+            onTouchEnd={(e) => {
+              if (this.touchX - e.nativeEvent.pageX < -20) setSelectedTab("Подборки");
+              else if (this.touchX - e.nativeEvent.pageX > 20) setSelectedTab("Фото");
+            }}
+          >
             {renderAlbums()}
           </View>
         )}
-        {selectedTab === 'Подборки' && (
-          <View style={styles.collectionContainer}>
-            {renderCollections()}
+        {selectedTab === "Подборки" && (
+          <View 
+            style={styles.collectionContainer}
+            onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
+            onTouchEnd={(e) => {
+              if (this.touchX - e.nativeEvent.pageX < -20) setSelectedTab("Фото");
+              else if (this.touchX - e.nativeEvent.pageX > 20) setSelectedTab("Альбомы");
+            }}
+          >
+              {renderCollections()}
           </View>
         )}
       </ScrollView>
@@ -69,13 +120,13 @@ export default function App() {
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
           </TouchableOpacity>
-          <Image 
-            source={selectedPhoto} style={styles.fullPhoto} 
-            onTouchStart={e=> this.touchY = e.nativeEvent.pageY}
-            onTouchEnd={e => {
-              if (this.touchY - e.nativeEvent.pageY < -20)
-                closePhoto()
-          }}
+          <Image
+            source={selectedPhoto}
+            style={styles.fullPhoto}
+            onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
+            onTouchEnd={(e) => {
+              if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
+            }}
           />
         </View>
       </Modal>
@@ -209,8 +260,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   fullPhoto: {
-    width: width - 40, // Ширина экрана с отступами по 20 с обеих сторон
-    height: height - 120, // Высота экрана с отступами сверху и снизу по 60
+    width: width, // Ширина экрана с отступами по 20 с обеих сторон
+    height: height, // Высота экрана с отступами сверху и снизу по 60
     resizeMode: 'contain',
   },
   backButton: {
