@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
@@ -25,11 +25,14 @@ export default function App() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer}>
-          <Ionicons name="sync" size={24} color="black" />
+          <Image name="sync" size={24} color="#8CE8E5" width="48" height="40" source={require('./assets/UI_Elements/sync.png')} />
         </TouchableOpacity>
-        <Text style={styles.title}>Photo Viewer</Text>
+        <View>
+          <TextInput style={styles.searchBar} placeholder="Search">
+          </TextInput>
+        </View>
         <TouchableOpacity style={styles.iconContainer}>
-          <Ionicons name="settings" size={24} color="black" />
+          <Ionicons name="settings" size={24} color="#8CE8E5" />
         </TouchableOpacity>
       </View>
       <View style={styles.tabs}>
@@ -133,6 +136,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 0,
     backgroundColor: '#222222',
+  },
+  searchBar: {
+    borderRadius: 20,
+    backgroundColor: "#E7E7E7",
+    width: 286,
+    height: 35,
   },
   title: {
     fontSize: 20,
