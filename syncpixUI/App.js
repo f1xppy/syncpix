@@ -23,14 +23,23 @@ export default function App() {
 
   const menuSwipeHandle = (start, end) => {
     if (selectedTab === 'Фото')
+    {
       if (start - end > 50) setSelectedTab("Альбомы");
       else if (start - end < -50) setSelectedTab("Подборки");
+      console.log('SWIPE');
+    }
     else if (selectedTab === 'Альбомы')
+    {
       if (start - end > 50) setSelectedTab("Подборки");
       else if (start - end < -50) setSelectedTab("Фото");
+      console.log('SWIPE');
+    }
     else if (selectedTab === 'Подборки')
+    {
       if (start - end > 50) setSelectedTab("Фото");
       else if (start - end < -50) setSelectedTab("Альбомы");
+      console.log('SWIPE');
+    }
   };
 
   return (
