@@ -26,19 +26,16 @@ export default function App() {
     {
       if (start - end > 50) setSelectedTab("Альбомы");
       else if (start - end < -50) setSelectedTab("Подборки");
-      console.log('SWIPE');
     }
     else if (selectedTab === 'Альбомы')
     {
       if (start - end > 50) setSelectedTab("Подборки");
       else if (start - end < -50) setSelectedTab("Фото");
-      console.log('SWIPE');
     }
     else if (selectedTab === 'Подборки')
     {
       if (start - end > 50) setSelectedTab("Фото");
       else if (start - end < -50) setSelectedTab("Альбомы");
-      console.log('SWIPE');
     }
   };
 
@@ -97,7 +94,7 @@ export default function App() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView style={styles.test} onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
+      <ScrollView onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
         {selectedTab === "Фото" && (
           <View style={styles.photoContainer}>
             {renderPhotos(openPhoto)}
