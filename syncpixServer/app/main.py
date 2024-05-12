@@ -39,6 +39,7 @@ async def add_device(account_id: int, mac: str, request: Request):
     session.commit()
     return {"message": "device saved"}
 
+
 @app.put("/devices/{id}")
 async def update_device_address(id:int, request: Request):
     device_to_update = session.query(Device).filter_by(id=id).first()
@@ -48,6 +49,7 @@ async def update_device_address(id:int, request: Request):
         return {"message": "address updated"}
     else:
         return {"message": "device not found"}
+
 
 @app.get("/devices/{id}")
 async def get_device_list(account_id: int):
