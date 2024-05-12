@@ -23,7 +23,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} paddingTop="StatusBar.currentHeight">
+      <View style={styles.header} >
         <TouchableOpacity style={styles.iconContainer}>
           <Image name="sync" size={24} color="#8CE8E5" width="48" height="40" source={require('./assets/UI_Elements/sync.png')} />
         </TouchableOpacity>
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#222222',
+    paddingTop: 15,
   },
   searchBar: {
     borderRadius: 20,
