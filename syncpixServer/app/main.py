@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from sqlalchemy import Column, Integer, String, create_engine, Boolean
+from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app import config
@@ -17,7 +17,6 @@ class Device(Base):
     mac = Column(String)
     account_id = Column(Integer)
     ip = Column(String)
-    online = Column(Boolean, default=True)
 
 
 Base.metadata.create_all(engine)
@@ -34,9 +33,19 @@ async def add_device(account_id: int, mac: str, request: Request):
     db_request = Device(
         mac=mac,
         account_id=account_id,
-        ip=client_host,
-        online=True
+        ip=client_host
     )
     session.add(db_request)
     session.commit()
     return {"message": "device saved"}
+
+@app.put("/devices/{id}")
+async def update_device_address(id:int, request: Request):
+    device_to_update = session.query(Device).filter_by(id=id).first()
+    if device_to_update:
+        device_to_update.ip = request.client.host
+        session.commit()
+        return {"message": "address updated"}
+    else:
+        return {"message": "device not found"}
+
