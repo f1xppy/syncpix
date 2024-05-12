@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, StatusBar } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, StatusBar, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
@@ -22,6 +22,17 @@ export default function App() {
   };
 
   const menuSwipeHandle = (start, end) => {
+    /*const childXValue = useRef(new Animated.Value((start + end) / 2)).current
+    const swipeHorizontal = () => {
+      Animated.timing(
+        this.state.menuAnimation,
+        toValue:  
+        duration: 300
+      ).start();
+    };
+    const swipeStyle ={
+      transform: [{ translateX: childXValue.interpolate }]
+    };*/
     if (selectedTab === 'Фото')
     {
       if (start - end > 50) setSelectedTab("Альбомы");
@@ -40,6 +51,7 @@ export default function App() {
   };
 
   return (
+    
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer}>
@@ -96,24 +108,24 @@ export default function App() {
       </View>
       <ScrollView onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
         {selectedTab === "Фото" && (
-          <View style={styles.photoContainer}>
+          <Animated.View style={[styles.photoContainer]}>
             {renderPhotos(openPhoto)}
-          </View>
+          </Animated.View>
         )}
         {selectedTab === "Альбомы" && (
-          <View style={styles.albumContainer}>
+          <Animated.View style={styles.albumContainer}>
             {renderAlbums()}
-          </View>
+          </Animated.View>
         )}
         {selectedTab === "Подборки" && (
-          <View style={styles.collectionContainer}>
+          <Animated.View style={styles.collectionContainer}>
               {renderCollections()}
-          </View>
+          </Animated.View>
         )}
       </ScrollView>
 
       <Modal visible={selectedPhoto !== null} animationType="fade">
-        <View style={styles.modalContainer}>
+        <Animated.View style={styles.modalContainer}>
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
           </TouchableOpacity>
@@ -125,7 +137,7 @@ export default function App() {
               if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
             }}
           />
-        </View>
+        </Animated.View>
       </Modal>
     </View>
   );
@@ -178,6 +190,7 @@ const renderCollections = () => {
     </TouchableOpacity>
   ));
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -284,6 +297,9 @@ const styles = StyleSheet.create({
   },
   defText: {
 
+  },
+  text: {
+    fontFamily: 'Roboto',
   },
   test: {
     backgroundColor: 'orange',
