@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#222222',
-    paddingTop: 20,
+    paddingTop: 23,
   },
   searchBar: {
     borderRadius: 20,
