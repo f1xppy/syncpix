@@ -3,7 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView,
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
-const photoWidth = (width - 40) / 3; // Определяем ширину фотографии
+const photoWidth = (width - 38) / 3; // Определяем ширину фотографии
+const folderWidth = (width - 68) / 2; // Определяем ширину folder
 
 export default function App() {
   const [selectedTab, setSelectedTab] = useState('Фото');
@@ -77,6 +78,7 @@ export default function App() {
             onPress={() => handleTabPress("Фото")}
             style={[
               styles.tab,
+              styles.text,
               selectedTab === "Фото" ? styles.selectedTab : null,
             ]}
           >
@@ -88,6 +90,7 @@ export default function App() {
             onPress={() => handleTabPress("Альбомы")}
             style={[
               styles.tab,
+              styles.text,
               selectedTab === "Альбомы" ? styles.selectedTab : null,
             ]}
           >
@@ -99,6 +102,7 @@ export default function App() {
             onPress={() => handleTabPress("Подборки")}
             style={[
               styles.tab,
+              styles.text,
               selectedTab === "Подборки" ? styles.selectedTab : null,
             ]}
           >
@@ -162,25 +166,25 @@ const renderPhotos = (onPress) => { // Принимаем функцию onPress
 // Функция для отображения альбомов
 const renderAlbums = () => {
   const albums = [
-    'Альбом 1',
-    'Альбом 2',
-    'Альбом 3',
+    require('./assets/photo1.jpg'),
+    require('./assets/photo2.jpg'),
+    require('./assets/photo3.jpg'),
     // Добавьте больше альбомов по аналогии
   ];
 
   return albums.map((album, index) => (
-    <TouchableOpacity key={index} style={styles.album}>
-      <Text>{album}</Text>
-    </TouchableOpacity>
+    <TouchableOpacity key={index} onPress={() => onPress(album)}>
+    <Image source={album} style={styles.album} />
+  </TouchableOpacity>
   ));
 };
 
 // Функция для отображения подборок
 const renderCollections = () => {
   const collections = [
-    'Подборка 1',
-    'Подборка 2',
-    'Подборка 3',
+    require('./assets/photo1.jpg'),
+    require('./assets/photo2.jpg'),
+    require('./assets/photo3.jpg'),
     // Добавьте больше подборок по аналогии
   ];
 
@@ -222,19 +226,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 10,
-    borderBottomWidth: 1,
     backgroundColor: '#222222',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    fontSize: 20,
+    fontWeight: 'medium',
   },
   tab: {
     padding: 10,
     color: '#FFFFFF',
-    fontFamily: 'Roboto',
   },
   selectedTab: {
     color: '#8CE8E5',
-    fontFamily: 'Roboto',
   },
   photoContainer: {
     flexDirection: 'row',
@@ -248,14 +251,19 @@ const styles = StyleSheet.create({
     margin: 3,
   },
   albumContainer: {
-    padding: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 0,
   },
   album: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    width: folderWidth,
+    height: folderWidth,
+    borderRadius: 10,
+    //margin: 25,
   },
   collectionContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     padding: 10,
   },
   collection: {
@@ -282,13 +290,11 @@ const styles = StyleSheet.create({
   },
   headerBtnText: {
     color: '#FFFFFF',
-    fontFamily: 'Roboto',
     fontWeight: 'medium',
     fontSize: 20,
   },
   headerBtnPressed: {
     color: '#8CE8E5',
-    fontFamily: 'Roboto',
     fontWeight: 'medium',
     fontSize: 20,
   },
