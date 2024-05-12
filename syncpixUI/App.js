@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 const photoWidth = (width - 38) / 3; // Определяем ширину фотографии
-const folderWidth = (width - 68) / 2; // Определяем ширину folder
+const folderWidth = (width - 38) / 2; // Определяем ширину folder
 
 export default function App() {
   const [selectedTab, setSelectedTab] = useState('Фото');
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontSize: 18,
     marginLeft: folderWidth/8,
-    marginTop: folderWidth/10,
+    marginTop: folderWidth/4 - 9,
     fontWeight: 739
   },
   album: {
