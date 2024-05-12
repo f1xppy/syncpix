@@ -49,3 +49,12 @@ async def update_device_address(id:int, request: Request):
     else:
         return {"message": "device not found"}
 
+@app.get("/devices/{id}")
+async def get_device_list(account_id: int):
+    devices = session.query(Device).filter_by(account_id=account_id).all()
+    if devices:
+        device_list = [int(device_id.__dict__["id"]) for device_id in devices]
+        return device_list
+    else:
+        return {"message": "account not found"}
+
