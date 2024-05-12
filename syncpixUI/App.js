@@ -23,14 +23,14 @@ export default function App() {
 
   const menuSwipeHandle = (start, end) => {
     if (selectedTab === 'Фото')
-      if (start - end < -20) setSelectedTab("Альбомы");
-      else if (start - end > 20) setSelectedTab("Подборки");
+      if (start - end > 20) setSelectedTab("Альбомы");
+      else if (start - end < -20) setSelectedTab("Подборки");
     else if (selectedTab === 'Альбомы')
-      if (start - end < -20) setSelectedTab("Подборки");
-      else if (start - end > 20) setSelectedTab("Фото");
+      if (start - end > 20) setSelectedTab("Подборки");
+      else if (start - end < -20) setSelectedTab("Фото");
     else if (selectedTab === 'Подборки')
-      if (start - end < -20) setSelectedTab("Фото");
-      else if (start - end > 20) setSelectedTab("Альбомы");
+      if (start - end > 20) setSelectedTab("Фото");
+      else if (start - end < -20) setSelectedTab("Альбомы");
   };
 
   return (
@@ -88,7 +88,7 @@ export default function App() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
+      <ScrollView style={styles.test} onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
         {selectedTab === "Фото" && (
           <View style={styles.photoContainer}>
             {renderPhotos(openPhoto)}
