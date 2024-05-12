@@ -21,6 +21,18 @@ export default function App() {
     setSelectedPhoto(null);
   };
 
+  const menuSwipeHandle = (start, end) => {
+    if (selectedTab === 'Фото')
+      if (start - end < -20) setSelectedTab("Альбомы");
+      else if (start - end > 20) setSelectedTab("Подборки");
+    else if (selectedTab === 'Альбомы')
+      if (start - end < -20) setSelectedTab("Подборки");
+      else if (start - end > 20) setSelectedTab("Фото");
+    else if (selectedTab === 'Подборки')
+      if (start - end < -20) setSelectedTab("Фото");
+      else if (start - end > 20) setSelectedTab("Альбомы");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -76,40 +88,19 @@ export default function App() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView>
+      <ScrollView onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
         {selectedTab === "Фото" && (
-          <View
-            style={styles.photoContainer}
-            onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
-            onTouchEnd={(e) => {
-              if (this.touchX - e.nativeEvent.pageX < -20) setSelectedTab("Альбомы");
-              else if (this.touchX - e.nativeEvent.pageX > 20) setSelectedTab("Подборки");
-            }}
-          >
+          <View style={styles.photoContainer}>
             {renderPhotos(openPhoto)}
           </View>
         )}
         {selectedTab === "Альбомы" && (
-          <View 
-            style={styles.albumContainer}
-            onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
-            onTouchEnd={(e) => {
-              if (this.touchX - e.nativeEvent.pageX < -20) setSelectedTab("Подборки");
-              else if (this.touchX - e.nativeEvent.pageX > 20) setSelectedTab("Фото");
-            }}
-          >
+          <View style={styles.albumContainer}>
             {renderAlbums()}
           </View>
         )}
         {selectedTab === "Подборки" && (
-          <View 
-            style={styles.collectionContainer}
-            onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
-            onTouchEnd={(e) => {
-              if (this.touchX - e.nativeEvent.pageX < -20) setSelectedTab("Фото");
-              else if (this.touchX - e.nativeEvent.pageX > 20) setSelectedTab("Альбомы");
-            }}
-          >
+          <View style={styles.collectionContainer}>
               {renderCollections()}
           </View>
         )}
@@ -287,5 +278,8 @@ const styles = StyleSheet.create({
   },
   defText: {
 
+  },
+  test: {
+    backgroundColor: 'orange',
   },
 });
