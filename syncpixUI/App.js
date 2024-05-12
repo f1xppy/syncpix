@@ -52,7 +52,6 @@ export default function App() {
   };
 
   return (
-    
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer}>
@@ -110,7 +109,12 @@ export default function App() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)} onTouchEnd={(e) => {menuSwipeHandle(this.touchX, e.nativeEvent.pageX)}}>
+      <ScrollView
+        onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
+        onTouchEnd={(e) => {
+          menuSwipeHandle(this.touchX, e.nativeEvent.pageX);
+        }}
+      >
         {selectedTab === "Фото" && (
           <Animated.View style={[styles.photoContainer]}>
             {renderPhotos(openPhoto)}
@@ -118,12 +122,20 @@ export default function App() {
         )}
         {selectedTab === "Альбомы" && (
           <Animated.View style={styles.albumContainer}>
+            <TouchableOpacity onPress={() => onPress(album)}>
+              <View style={styles.albumWrapper}>
+                <View style={styles.addAlbum}>
+                  <Ionicons name="add-sharp" size={folderWidth/2} color="#8CE8E5" />
+                </View>
+                <Text style={[styles.albumText, styles.text]}>Добавить</Text>
+              </View>
+            </TouchableOpacity>
             {renderAlbums()}
           </Animated.View>
         )}
         {selectedTab === "Подборки" && (
           <Animated.View style={styles.collectionContainer}>
-              {renderCollections()}
+            {renderCollections()}
           </Animated.View>
         )}
       </ScrollView>
@@ -174,8 +186,11 @@ const renderAlbums = () => {
 
   return albums.map((album, index) => (
     <TouchableOpacity key={index} onPress={() => onPress(album)}>
-    <Image source={album} style={styles.album} />
-  </TouchableOpacity>
+      <View style={styles.albumWrapper}>
+        <Image source={album} style={styles.album} />
+        <Text style={[styles.albumText, styles.text]}>Sample</Text>
+      </View>
+    </TouchableOpacity>
   ));
 };
 
@@ -189,8 +204,11 @@ const renderCollections = () => {
   ];
 
   return collections.map((collection, index) => (
-    <TouchableOpacity key={index} style={styles.collection}>
-      <Text>{collection}</Text>
+    <TouchableOpacity key={index} onPress={() => onPress(collection)}>
+      <View style={styles.albumWrapper}>
+        <Image source={collection} style={styles.collection} />
+        <Text style={[styles.albumText, styles.text]}>Sample</Text>
+      </View>
     </TouchableOpacity>
   ));
 };
@@ -230,11 +248,11 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     fontSize: 20,
-    fontWeight: 'medium',
   },
   tab: {
     padding: 10,
     color: '#FFFFFF',
+    fontWeight: 'medium',
   },
   selectedTab: {
     color: '#8CE8E5',
@@ -243,6 +261,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 10,
+    alignContent: 'center',
+    justifyContent: 'space-between',
   },
   photo: {
     width: photoWidth,
@@ -253,23 +273,48 @@ const styles = StyleSheet.create({
   albumContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 0,
+    padding: 10,
+    alignContent: 'center',
+    justifyContent: 'space-between',
+  },
+  albumWrapper:{
+    width: folderWidth,
+    height: folderWidth + folderWidth/8,
+    borderRadius: 30,
+    margin: 5,
+    backgroundColor: '#8CE8E5',
+  },
+  albumText:{
+    color: '#333333',
+    fontSize: 18,
+    marginLeft: folderWidth/8,
+    marginTop: folderWidth/32,
+    fontWeight: 739
   },
   album: {
     width: folderWidth,
     height: folderWidth,
-    borderRadius: 10,
-    //margin: 25,
+    borderRadius: 30,
+  },
+  addAlbum:{
+    width:folderWidth, 
+    height: folderWidth, 
+    backgroundColor:'#707070', 
+    borderRadius:30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   collectionContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 10,
+    alignContent: 'center',
+    justifyContent: 'space-between',
   },
   collection: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    width: folderWidth,
+    height: folderWidth,
+    borderRadius: 30,
   },
   modalContainer: {
     flex: 1,
