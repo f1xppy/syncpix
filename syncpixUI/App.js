@@ -73,7 +73,7 @@ export default function App() {
             source={selectedPhoto} style={styles.fullPhoto} 
             onTouchStart={e=> this.touchY = e.nativeEvent.pageY}
             onTouchEnd={e => {
-              if (this.touchY - e.nativeEvent.pageY > 20)
+              if (this.touchY - e.nativeEvent.pageY < -20)
                 closePhoto()
           }}
           />
