@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   albumWrapper:{
     width: folderWidth,
-    height: folderWidth + folderWidth/8,
+    height: folderWidth + folderWidth/4,
     borderRadius: 30,
     margin: 5,
     backgroundColor: '#8CE8E5',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontSize: 18,
     marginLeft: folderWidth/8,
-    marginTop: folderWidth/32,
+    marginTop: folderWidth/10,
     fontWeight: 739
   },
   album: {
