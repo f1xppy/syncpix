@@ -69,7 +69,14 @@ export default function App() {
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
           </TouchableOpacity>
-          <Image source={selectedPhoto} style={styles.fullPhoto} />
+          <Image 
+            source={selectedPhoto} style={styles.fullPhoto} 
+            onTouchStart={e=> this.touchY = e.nativeEvent.pageY}
+            onTouchEnd={e => {
+              if (this.touchY - e.nativeEvent.pageY > 20)
+                closePhoto()
+          }}
+          />
         </View>
       </Modal>
     </View>
