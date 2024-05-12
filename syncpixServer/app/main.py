@@ -1,9 +1,17 @@
 from fastapi import FastAPI, Request
+from scapy.layers.l2 import Ether, ARP
+from scapy.sendrecv import srp
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app import config
 import psycopg2
+import logging
+import libpcap
+
+logging.basicConfig(filename="log.txt",
+                    filemode='a',
+                    level = logging.INFO)
 
 
 app_config: config.Config = config.load_config()
@@ -51,7 +59,7 @@ async def update_device_address(id:int, request: Request):
         return {"message": "device not found"}
 
 
-@app.get("/devices/{id}")
+@app.get("/devices")
 async def get_device_list(account_id: int):
     devices = session.query(Device).filter_by(account_id=account_id).all()
     if devices:
@@ -63,8 +71,27 @@ async def get_device_list(account_id: int):
 
 @app.get("/devices/{id}")
 async def get_device_address(id: int):
-    device = session.query(Device).filter_by(id=id).first().__dict__
-    ip_address = device["ip"]
-    mac_address = device["mac"]
-    
+    device = session.query(Device).filter_by(id=id).first()
+    logging.info("123123123123")
+    ip_address = device.__dict__["ip"]
+    mac_address = device.__dict__["mac"]
+    logging.info(ip_address + ' ' + mac_address)
+    def check_connection(ip, mac):
+        # Создаем ARP-запрос для проверки соединения с устройством
+        arp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip)
+        logging.info(arp_request)
+        # Отправляем запрос и получаем ответ
+        arp_response = srp(arp_request, timeout=3, verbose=False)[0]
+        logging.info(arp_response)
+        # Проверяем, получили ли мы ответ
+        if arp_response:
+            # Проверяем, есть ли в полученных ответах устройство с нужным MAC-адресом
+            for packet in arp_response:
+                logging.info(packet)
+                if packet[1].hwsrc == mac:
+                    return 1
+        return 0
+
+    return check_connection(ip_address, mac_address)
+
 
