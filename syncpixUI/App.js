@@ -64,13 +64,12 @@ export default function App() {
         )}
       </ScrollView>
 
-      <Modal visible={selectedPhoto !== null} animationType="slide">
+      <Modal visible={selectedPhoto !== null} animationType="fade">
         <View style={styles.modalContainer}>
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="black" />
+            <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
           </TouchableOpacity>
           <Image source={selectedPhoto} style={styles.fullPhoto} />
-          <Button title="Закрыть" onPress={closePhoto} />
         </View>
       </Modal>
     </View>
@@ -142,6 +141,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#E7E7E7",
     width: 286,
     height: 35,
+    paddingLeft: 8,
   },
   title: {
     fontSize: 20,
@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 50, // Добавляем отступ сверху для центрирования
+    backgroundColor: '#000000',
   },
   fullPhoto: {
     width: width - 40, // Ширина экрана с отступами по 20 с обеих сторон
