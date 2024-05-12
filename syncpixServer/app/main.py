@@ -60,3 +60,11 @@ async def get_device_list(account_id: int):
     else:
         return {"message": "account not found"}
 
+
+@app.get("/devices/{id}")
+async def get_device_address(id: int):
+    device = session.query(Device).filter_by(id=id).first().__dict__
+    ip_address = device["ip"]
+    mac_address = device["mac"]
+    
+
