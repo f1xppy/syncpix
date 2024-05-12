@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
@@ -23,7 +23,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.header} paddingTop="StatusBar.currentHeight">
         <TouchableOpacity style={styles.iconContainer}>
           <Image name="sync" size={24} color="#8CE8E5" width="48" height="40" source={require('./assets/UI_Elements/sync.png')} />
         </TouchableOpacity>
@@ -133,7 +133,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 0,
     backgroundColor: '#222222',
   },
   searchBar: {
@@ -199,7 +198,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50, // Добавляем отступ сверху для центрирования
     backgroundColor: '#000000',
   },
   fullPhoto: {
