@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from sqlalchemy import Column, Integer, String, create_engine
+from fastapi import FastAPI, Request
+from sqlalchemy import Column, Integer, String, create_engine, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app import config
@@ -13,10 +13,11 @@ Base = declarative_base()
 
 class Device(Base):
     __tablename__ = 'devices'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     mac = Column(String)
     account_id = Column(Integer)
     ip = Column(String)
+    online = Column(Boolean, default=True)
 
 
 Base.metadata.create_all(engine)
@@ -27,11 +28,15 @@ session = Session()
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+@app.post("/devices/{id}")
+async def add_device(account_id: int, mac: str, request: Request):
+    client_host = request.client.host
+    db_request = Device(
+        mac=mac,
+        account_id=account_id,
+        ip=client_host,
+        online=True
+    )
+    session.add(db_request)
+    session.commit()
+    return {"message": "device saved"}
