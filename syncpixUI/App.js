@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Modal, Button, StatusBar, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import {GestureDetector, Gesture, GestureHandlerRootView}  from 'react-native-gesture-handler';
+import {GestureDetector, Gesture, GestureHandlerRootView, gestureHandlerRootHOC}  from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,9 +10,10 @@ import Animated, {
   measure,
 } from 'react-native-reanimated';
 
+
 const { width, height } = Dimensions.get('window');
 const photoWidth = (width - 38) / 3; // Определяем ширину фотографии
-const folderWidth = (width - 38) / 2; // Определяем ширину folder
+const folderWidth = (width - 50) / 2; // Определяем ширину folder
 
 
 function clamp(val, min, max) {
@@ -21,6 +22,7 @@ function clamp(val, min, max) {
 export default function App() {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null); // Состояние для открытого фото
+  const [syncModalVisible, setSyncModalVisible] = useState(false);
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
@@ -40,12 +42,11 @@ export default function App() {
         Math.min(width / 100, height / 100)
       );
     })
-    /*.onEnd(()=>{
+    .onEnd(()=>{
       if (scale.value < 1)
         scale.value = 1;
-    })*/
+    })
     .runOnJS(true);
-
   const translationX = useSharedValue(0);
   const translationY = useSharedValue(0);
   const prevTranslationX = useSharedValue(0);
@@ -68,7 +69,7 @@ export default function App() {
     .onUpdate((event) => {
       const maxTranslateX = width / 2 - 50;
       const maxTranslateY = height / 2 - 50;
-
+      console.log("swipe")
       translationX.value = clamp(
         prevTranslationX.value + event.translationX,
         -maxTranslateX,
@@ -87,17 +88,21 @@ export default function App() {
       }
     })
     .runOnJS(true);
+    
+    console.log(width)
+    console.log(height)
 
     const composedFullPhoto = Gesture.Simultaneous(pan, pinch)
 
     const openPhoto = (photo) => {
       setSelectedPhoto(photo);
+      console.log("Opened photo")
     };
   
     const closePhoto = () => {
       setSelectedPhoto(null);
     };
-  
+
   const menuSwipeHandle = (start, end) => {
     /*const childXValue = useRef(new Animated.Value((start + end) / 2)).current
     const swipeHorizontal = () => {
@@ -121,17 +126,18 @@ export default function App() {
       else if (start - end < -50) setSelectedTab("Альбомы");
     }
   };
+  //StatusBar.setHidden(true);
+
+  
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconContainer}>
-          <Image
+        <TouchableOpacity style={styles.iconContainer} onPress={() => setSyncModalVisible(true)}>
+          <Animated.Image
             name="sync"
             size={24}
             color="#8CE8E5"
-            width="48"
-            height="40"
             source={require("./assets/UI_Elements/sync.png")}
           />
         </TouchableOpacity>
@@ -193,7 +199,7 @@ export default function App() {
         )}
         {selectedTab === "Альбомы" && (
           <Animated.View style={styles.albumContainer}>
-            <TouchableOpacity onPress={() => onPress(album)}>
+            <TouchableOpacity>
               <View style={styles.albumWrapper}>
                 <View style={styles.addAlbum}>
                   <Ionicons
@@ -214,7 +220,11 @@ export default function App() {
           </Animated.View>
         )}
       </ScrollView>
-
+      <TouchableOpacity style={styles.takePhotoContainer}>
+        <View style={styles.takePhotoBtn}>
+          <Ionicons name="camera" size={photoWidth/3} color="#000000" />
+        </View>
+      </TouchableOpacity>
       <Modal visible={selectedPhoto !== null} animationType="fade">
         <Animated.View style={styles.modalContainer}>
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
@@ -224,12 +234,43 @@ export default function App() {
           <Animated.Image
             source={selectedPhoto}
             style={[animatedPhotoStyles, styles.fullPhoto]}
-            onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
+            /*onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
             onTouchEnd={(e) => {
               if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
-            }}
+            }}*/
           />
           </GestureDetector>
+        </Animated.View>
+      </Modal>
+      <Modal 
+        visible={syncModalVisible === true} 
+        animationType="slide"
+        transparent={true}
+        >
+        <Animated.View style={styles.modalBackground}>
+        <Animated.View style={styles.syncModalContainer}>
+        <TouchableOpacity>
+        <Animated.View style={styles.syncBtn}>
+          <Text style={[styles.text, styles.syncText]}>
+            Загрузить ...
+          </Text>
+        </Animated.View>
+        </TouchableOpacity>
+        <TouchableOpacity>
+        <Animated.View style={styles.syncBtn}>
+          <Text style={[styles.text, styles.syncText]}>
+            Скачать ...
+          </Text>
+        </Animated.View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setSyncModalVisible(!syncModalVisible)}>
+        <Animated.View style={styles.syncBtn}>
+          <Text style={[styles.text, styles.syncText]}>
+            Синхронизировать
+          </Text>
+        </Animated.View>
+        </TouchableOpacity>
+        </Animated.View>
         </Animated.View>
       </Modal>
     </GestureHandlerRootView>
@@ -266,7 +307,7 @@ const renderAlbums = () => {
   ];
 
   return albums.map((album, index) => (
-    <TouchableOpacity key={index} onPress={() => onPress(album)}>
+    <TouchableOpacity key={index}>
       <View style={styles.albumWrapper}>
         <Image source={album} style={styles.album} />
         <Text style={[styles.albumText, styles.text]}>Sample</Text>
@@ -285,8 +326,8 @@ const renderCollections = () => {
   ];
 
   return collections.map((collection, index) => (
-    <TouchableOpacity key={index} onPress={() => onPress(collection)}>
-      <View style={styles.albumWrapper}>
+    <TouchableOpacity key={index}>
+      <View style={[styles.albumWrapper, style={color:'#ffffff'}]}>
         <Image source={collection} style={styles.collection} />
         <Text style={[styles.albumText, styles.text]}>Sample</Text>
       </View>
@@ -305,7 +346,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#222222',
-    paddingTop: 25,
+    paddingTop: StatusBar.currentHeight,
   },
   searchBar: {
     borderRadius: 20,
@@ -342,7 +383,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 10,
-    alignContent: 'center',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
   photo: {
@@ -403,6 +444,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#000000',
   },
+
+  syncModalContainer:{
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#333333',
+    borderRadius: 30,
+    width: width - width/5,    
+    height: height/2,
+    margin: 20,
+    padding: 20,
+  },
+
+  syncBtn:{
+    borderRadius: 10,
+    borderColor: '#555555',
+    borderWidth: 1,
+    width: width - 2*(width/5), 
+    height:40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+  },
+  modalBackground:{
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
   fullPhoto: {
     width: width, // Ширина экрана с отступами по 20 с обеих сторон
     height: height, // Высота экрана с отступами сверху и снизу по 60
@@ -424,11 +491,24 @@ const styles = StyleSheet.create({
     fontWeight: 'medium',
     fontSize: 20,
   },
-  menuText: {
-
+  takePhotoBtn:{
+    borderRadius: 50,
+    width: photoWidth/2,
+    height: photoWidth/2,
+    backgroundColor: "#8CE8E5",
+    
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  defText: {
-
+  takePhotoContainer: {
+    position: 'absolute',
+    top: height - photoWidth/4,
+    left: width/2 - photoWidth/4,
+  },
+  syncText: {
+    color: '#FFFFFF',
+    fontWeight: 'regular',
+    fontSize: 20,
   },
   text: {
     fontFamily: 'Roboto',
@@ -436,4 +516,5 @@ const styles = StyleSheet.create({
   test: {
     backgroundColor: 'orange',
   },
+
 });
