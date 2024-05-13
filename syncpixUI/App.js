@@ -73,25 +73,27 @@ export default function App() {
     .onUpdate((event) => {
       const maxTranslateX = width/2 -50;
       const maxTranslateY = height/2 - 50;
-      if (scale.value !== 1){
-      translationX.value = clamp(
-        prevTranslationX.value + event.translationX,
-        -maxTranslateX,
-        maxTranslateX
-      );
       translationY.value = clamp(
         prevTranslationY.value + event.translationY,
         -maxTranslateY,
         maxTranslateY
       );
+      if (scale.value !== 1){
+        translationX.value = clamp(
+          prevTranslationX.value + event.translationX,
+          -maxTranslateX,
+          maxTranslateX
+      );
+      
     }
-  })
-    /*.onFinalize(()=>{
-      if (scale.value == 1){
-        translationX.value = 0;
-        translationY.value = 0;
+    })
+    .onEnd(()=>{
+      if (scale.value <= 1) {
+        scale.value = withSpring(1);
+        translationX.value = withSpring(0);
+        translationY.value = withSpring(0);
       }
-    })*/
+  })
     .runOnJS(true);
 
 
