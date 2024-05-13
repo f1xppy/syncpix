@@ -1,27 +1,96 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, StatusBar, Animated, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, StatusBar, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {GestureDetector, Gesture, GestureHandlerRootView}  from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 const photoWidth = (width - 38) / 3; // Определяем ширину фотографии
 const folderWidth = (width - 38) / 2; // Определяем ширину folder
 
+function clamp(val, min, max) {
+  return Math.min(Math.max(val, min), max);}
+
 export default function App() {
-  const [selectedTab, setSelectedTab] = useState('Фото');
+  const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null); // Состояние для открытого фото
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
   };
 
-  const openPhoto = (photo) => {
-    setSelectedPhoto(photo);
-  };
+  const scale = useSharedValue(1);
+  const startScale = useSharedValue(0);
 
-  const closePhoto = () => {
-    setSelectedPhoto(null);
-  };
+  const pinch = Gesture.Pinch()
+    .onStart(() => {
+      startScale.value = scale.value;
+    })
+    .onUpdate((event) => {
+      scale.value = clamp(
+        startScale.value * event.scale,
+        0.5,
+        Math.min(width / 100, height / 100)
+      );
+    })
+    .runOnJS(true);
 
+  const translationX = useSharedValue(0);
+  const translationY = useSharedValue(0);
+  const prevTranslationX = useSharedValue(0);
+  const prevTranslationY = useSharedValue(0);
+
+  const animatedPhotoStyles = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translationX.value },
+      { translateY: translationY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  const pan = Gesture.Pan()
+    .minDistance(50)
+    .onStart(() => {
+      prevTranslationX.value = translationX.value;
+      prevTranslationY.value = translationY.value;
+    })
+    .onUpdate((event) => {
+      const maxTranslateX = width / 2 - 50;
+      const maxTranslateY = height / 2 - 50;
+
+      translationX.value = clamp(
+        prevTranslationX.value + event.translationX,
+        -maxTranslateX,
+        maxTranslateX
+      );
+      translationY.value = clamp(
+        prevTranslationY.value + event.translationY,
+        -maxTranslateY,
+        maxTranslateY
+      );
+      console.log(scale.value);
+    })
+    .onFinalize(()=>{
+      if (scale.value == 1){
+        translationX.value = 0;
+        translationY.value = 0;
+      }
+    })
+    .runOnJS(true);
+
+    const composedFullPhoto = Gesture.Simultaneous(pan, pinch)
+
+    const openPhoto = (photo) => {
+      setSelectedPhoto(photo);
+    };
+  
+    const closePhoto = () => {
+      setSelectedPhoto(null);
+    };
+  
   const menuSwipeHandle = (start, end) => {
     /*const childXValue = useRef(new Animated.Value((start + end) / 2)).current
     const swipeHorizontal = () => {
@@ -34,25 +103,20 @@ export default function App() {
     const swipeStyle ={
       transform: [{ translateX: childXValue.interpolate }]
     };*/
-    if (selectedTab === 'Фото')
-    {
+    if (selectedTab === "Фото") {
       if (start - end > 50) setSelectedTab("Альбомы");
       else if (start - end < -50) setSelectedTab("Подборки");
-    }
-    else if (selectedTab === 'Альбомы')
-    {
+    } else if (selectedTab === "Альбомы") {
       if (start - end > 50) setSelectedTab("Подборки");
       else if (start - end < -50) setSelectedTab("Фото");
-    }
-    else if (selectedTab === 'Подборки')
-    {
+    } else if (selectedTab === "Подборки") {
       if (start - end > 50) setSelectedTab("Фото");
       else if (start - end < -50) setSelectedTab("Альбомы");
     }
   };
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer}>
           <Image
@@ -125,7 +189,11 @@ export default function App() {
             <TouchableOpacity onPress={() => onPress(album)}>
               <View style={styles.albumWrapper}>
                 <View style={styles.addAlbum}>
-                  <Ionicons name="add-sharp" size={folderWidth/2} color="#8CE8E5" />
+                  <Ionicons
+                    name="add-sharp"
+                    size={folderWidth / 2}
+                    color="#8CE8E5"
+                  />
                 </View>
                 <Text style={[styles.albumText, styles.text]}>Добавить</Text>
               </View>
@@ -145,26 +213,29 @@ export default function App() {
           <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
           </TouchableOpacity>
-          <Image
+          <GestureDetector gesture={composedFullPhoto}>
+          <Animated.Image
             source={selectedPhoto}
-            style={styles.fullPhoto}
+            style={[animatedPhotoStyles, styles.fullPhoto]}
             onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
             onTouchEnd={(e) => {
               if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
             }}
           />
+          </GestureDetector>
         </Animated.View>
       </Modal>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
 // Функция для отображения фотографий из папки assets
-const renderPhotos = (onPress) => { // Принимаем функцию onPress
+const renderPhotos = (onPress) => {
+  // Принимаем функцию onPress
   const photos = [
-    require('./assets/photo1.jpg'),
-    require('./assets/photo2.jpg'),
-    require('./assets/photo3.jpg'),
+    require("./assets/photo1.jpg"),
+    require("./assets/photo2.jpg"),
+    require("./assets/photo3.jpg"),
     // Добавьте больше фотографий по аналогии
   ];
 
