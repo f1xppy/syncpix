@@ -6,6 +6,7 @@ import {GestureDetector, Gesture, GestureHandlerRootView, gestureHandlerRootHOC}
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  withSpring,
   useAnimatedRef,
   measure,
 } from 'react-native-reanimated';
@@ -43,10 +44,11 @@ export default function App() {
       );
     })
     .onEnd(()=>{
-      if (scale.value < 1)
-        scale.value = 1;
-        translationX.value = 0;
-        translationY.value = 0;
+      if (scale.value < 1) {
+        scale.value = withSpring(1);
+        translationX.value = withSpring(0);
+        translationY.value = withSpring(0);
+      }
     })
     .runOnJS(true);
   const translationX = useSharedValue(0);
@@ -69,8 +71,8 @@ export default function App() {
       prevTranslationY.value = translationY.value;
     })
     .onUpdate((event) => {
-      const maxTranslateX = width / 2 - 50;
-      const maxTranslateY = height / 2 - 50;
+      const maxTranslateX = width/2 -50;
+      const maxTranslateY = height/2 - 50;
       if (scale.value !== 1){
       translationX.value = clamp(
         prevTranslationX.value + event.translationX,
@@ -81,14 +83,15 @@ export default function App() {
         prevTranslationY.value + event.translationY,
         -maxTranslateY,
         maxTranslateY
-      );}
-    })
-    .onFinalize(()=>{
+      );
+    }
+  })
+    /*.onFinalize(()=>{
       if (scale.value == 1){
         translationX.value = 0;
         translationY.value = 0;
       }
-    })
+    })*/
     .runOnJS(true);
 
 
