@@ -1,15 +1,19 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Modal, Button, StatusBar, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Modal, Button, StatusBar, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import {GestureDetector, Gesture, GestureHandlerRootView}  from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedRef,
+  measure,
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 const photoWidth = (width - 38) / 3; // Определяем ширину фотографии
 const folderWidth = (width - 38) / 2; // Определяем ширину folder
+
 
 function clamp(val, min, max) {
   return Math.min(Math.max(val, min), max);}
@@ -241,7 +245,10 @@ const renderPhotos = (onPress) => {
 
   return photos.map((photo, index) => (
     <TouchableOpacity key={index} onPress={() => onPress(photo)}>
-      <Image source={photo} style={styles.photo} />
+      <Animated.Image
+        ref={openingPhotoRef} 
+        source={photo} 
+        style={styles.photo} />
     </TouchableOpacity>
   ));
 };
