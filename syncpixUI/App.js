@@ -45,6 +45,8 @@ export default function App() {
     .onEnd(()=>{
       if (scale.value < 1)
         scale.value = 1;
+        translationX.value = 0;
+        translationY.value = 0;
     })
     .runOnJS(true);
   const translationX = useSharedValue(0);
@@ -69,7 +71,7 @@ export default function App() {
     .onUpdate((event) => {
       const maxTranslateX = width / 2 - 50;
       const maxTranslateY = height / 2 - 50;
-      console.log("swipe")
+      if (scale.value !== 1){
       translationX.value = clamp(
         prevTranslationX.value + event.translationX,
         -maxTranslateX,
@@ -79,7 +81,7 @@ export default function App() {
         prevTranslationY.value + event.translationY,
         -maxTranslateY,
         maxTranslateY
-      );
+      );}
     })
     .onFinalize(()=>{
       if (scale.value == 1){
@@ -88,15 +90,12 @@ export default function App() {
       }
     })
     .runOnJS(true);
-    
-    console.log(width)
-    console.log(height)
+
 
     const composedFullPhoto = Gesture.Simultaneous(pan, pinch)
 
     const openPhoto = (photo) => {
       setSelectedPhoto(photo);
-      console.log("Opened photo")
     };
   
     const closePhoto = () => {
@@ -128,10 +127,57 @@ export default function App() {
   };
   //StatusBar.setHidden(true);
 
-  
+  const SyncHOC = gestureHandlerRootHOC(() => (
+    <Animated.View style={styles.modalBackground}>
+          <Animated.View style={styles.syncModalContainer}>
+          <TouchableOpacity>
+          <Animated.View style={styles.syncBtn}>
+            <Text style={[styles.text, styles.syncText]}>
+              Загрузить ...
+            </Text>
+          </Animated.View>
+          </TouchableOpacity>
+          <TouchableOpacity>
+          <Animated.View style={styles.syncBtn}>
+            <Text style={[styles.text, styles.syncText]}>
+              Скачать ...
+            </Text>
+          </Animated.View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setSyncModalVisible(!syncModalVisible)}>
+          <Animated.View style={styles.syncBtn}>
+            <Text style={[styles.text, styles.syncText]}>
+              Синхронизировать
+            </Text>
+          </Animated.View>
+          </TouchableOpacity>
+          </Animated.View>
+          </Animated.View>
+    )
+  );
+
+  const FullPhotoHOC = gestureHandlerRootHOC(() => (
+    <Animated.View style={styles.modalContainer}>
+          <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
+          </TouchableOpacity>
+          <GestureDetector gesture={composedFullPhoto}>
+          <Animated.Image
+            source={selectedPhoto}
+            style={[animatedPhotoStyles, styles.fullPhoto]}
+            /*onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
+            onTouchEnd={(e) => {
+              if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
+            }}*/
+          />
+          </GestureDetector>
+        </Animated.View>
+    )
+  );
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer} onPress={() => setSyncModalVisible(true)}>
           <Animated.Image
@@ -226,53 +272,16 @@ export default function App() {
         </View>
       </TouchableOpacity>
       <Modal visible={selectedPhoto !== null} animationType="fade">
-        <Animated.View style={styles.modalContainer}>
-          <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#8CE8E5" />
-          </TouchableOpacity>
-          <GestureDetector gesture={composedFullPhoto}>
-          <Animated.Image
-            source={selectedPhoto}
-            style={[animatedPhotoStyles, styles.fullPhoto]}
-            /*onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
-            onTouchEnd={(e) => {
-              if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
-            }}*/
-          />
-          </GestureDetector>
-        </Animated.View>
+        <FullPhotoHOC />
       </Modal>
       <Modal 
         visible={syncModalVisible === true} 
         animationType="slide"
         transparent={true}
         >
-        <Animated.View style={styles.modalBackground}>
-        <Animated.View style={styles.syncModalContainer}>
-        <TouchableOpacity>
-        <Animated.View style={styles.syncBtn}>
-          <Text style={[styles.text, styles.syncText]}>
-            Загрузить ...
-          </Text>
-        </Animated.View>
-        </TouchableOpacity>
-        <TouchableOpacity>
-        <Animated.View style={styles.syncBtn}>
-          <Text style={[styles.text, styles.syncText]}>
-            Скачать ...
-          </Text>
-        </Animated.View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setSyncModalVisible(!syncModalVisible)}>
-        <Animated.View style={styles.syncBtn}>
-          <Text style={[styles.text, styles.syncText]}>
-            Синхронизировать
-          </Text>
-        </Animated.View>
-        </TouchableOpacity>
-        </Animated.View>
-        </Animated.View>
+        <SyncHOC />
       </Modal>
+      </View>
     </GestureHandlerRootView>
   );
 }
