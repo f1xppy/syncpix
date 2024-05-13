@@ -40,10 +40,10 @@ export default function App() {
         Math.min(width / 100, height / 100)
       );
     })
-    .onEnd(()=>{
+    /*.onEnd(()=>{
       if (scale.value < 1)
         scale.value = 1;
-    })
+    })*/
     .runOnJS(true);
 
   const translationX = useSharedValue(0);
@@ -250,7 +250,7 @@ const renderPhotos = (onPress) => {
   return photos.map((photo, index) => (
     <TouchableOpacity key={index} onPress={() => onPress(photo)}>
       <Animated.Image
-        ref={openingPhotoRef} 
+        //ref={openingPhotoRef} 
         source={photo} 
         style={styles.photo} />
     </TouchableOpacity>
