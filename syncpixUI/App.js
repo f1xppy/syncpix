@@ -79,7 +79,6 @@ export default function App() {
         -maxTranslateY,
         maxTranslateY
       );
-      console.log(scale.value);
     })
     .onFinalize(()=>{
       if (scale.value == 1){
