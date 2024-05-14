@@ -13,8 +13,8 @@ import Animated, {
 
 
 const { width, height } = Dimensions.get('window');
-const photoWidth = (width - 38) / 3; // Определяем ширину фотографии
-const folderWidth = (width - 50) / 2; // Определяем ширину folder
+const photoWidth = (width - 38) / 3;
+const folderWidth = (width - 50) / 2;
 
 
 function clamp(val, min, max) {
@@ -71,8 +71,8 @@ export default function App() {
       prevTranslationY.value = translationY.value;
     })
     .onUpdate((event) => {
-      const maxTranslateX = width/2 -50;
-      const maxTranslateY = height/2 - 50;
+      const maxTranslateX = width*scale.value - width;
+      const maxTranslateY = height*scale.value;
       translationY.value = clamp(
         prevTranslationY.value + event.translationY,
         -maxTranslateY,
@@ -88,10 +88,23 @@ export default function App() {
     }
     })
     .onEnd(()=>{
-      if (scale.value <= 1) {
+      if (scale.value < 1) {
         scale.value = withSpring(1);
         translationX.value = withSpring(0);
         translationY.value = withSpring(0);
+      }
+      else if (scale.value == 1){
+        if (translationY.value > 120)
+        {
+          closePhoto();
+          console.log("exit");
+          translationX.value = 0;
+          translationY.value = 0;
+        }
+        else{
+          translationX.value = withSpring(0);
+          translationY.value = withSpring(0);
+        }
       }
   })
     .runOnJS(true);
@@ -170,10 +183,6 @@ export default function App() {
           <Animated.Image
             source={selectedPhoto}
             style={[animatedPhotoStyles, styles.fullPhoto]}
-            /*onTouchStart={(e) => (this.touchY = e.nativeEvent.pageY)}
-            onTouchEnd={(e) => {
-              if (this.touchY - e.nativeEvent.pageY < -20) closePhoto();
-            }}*/
           />
           </GestureDetector>
         </Animated.View>
@@ -181,8 +190,7 @@ export default function App() {
   );
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconContainer} onPress={() => setSyncModalVisible(true)}>
           <Animated.Image
@@ -286,7 +294,6 @@ export default function App() {
         >
         <SyncHOC />
       </Modal>
-      </View>
     </GestureHandlerRootView>
   );
 }
