@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React,{ useState } from "react";
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ function clamp(val, min, max) {
 
 
 
-function MainScreen() {
+function MainScreen({navigation}) {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
@@ -214,7 +214,7 @@ function MainScreen() {
         <View>
           <TextInput style={styles.searchBar} placeholder="Search"></TextInput>
         </View>
-        <TouchableOpacity style={styles.iconContainer}>
+        <TouchableOpacity style={styles.iconContainer} onPress={() => {navigation.navigate(SCREENS.SETTINGS)}}>
           <Ionicons name="settings" size={24} color="#8CE8E5" />
         </TouchableOpacity>
       </View>
