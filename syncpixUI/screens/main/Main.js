@@ -22,6 +22,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withDecay,
 } from "react-native-reanimated";
 import { Image } from 'expo-image';
 import SCREENS from '..';
@@ -30,9 +31,74 @@ const { width, height } = Dimensions.get("window");
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
 
+const INITIAL_POS_Y_INPUT = -50;
+
+const INITIAL_POS_Y_SCROLL = 0;
+
+const DELAY_RESET_POSITION = 500;
+
+const CustomScrollView = () => {
+  const inputSv = useSharedValue(INITIAL_POS_Y_INPUT);
+  const scrollSv = useSharedValue(0);
+
+  const scrollPanGesture = Gesture.Pan()
+    .onUpdate(({ translationY }) => {
+      const clampedValue = clamp(translationY, 0, -INITIAL_POS_Y_INPUT);
+
+      inputSv.value = interpolate(
+        clampedValue,
+        [0, -INITIAL_POS_Y_INPUT],
+        [INITIAL_POS_Y_INPUT, 0],
+      );
+      scrollSv.value = clampedValue;
+    })
+    .onFinalize(({ translationY }) => {
+      const inputGoBackAnimation = withTiming(INITIAL_POS_Y_INPUT);
+      const scrollGoBackAnimation = withTiming(INITIAL_POS_Y_SCROLL);
+
+      if (translationY >= -INITIAL_POS_Y_INPUT) {
+        runOnJS(navigate)(Screens.NewTask);
+
+        inputSv.value = withDelay(DELAY_RESET_POSITION, inputGoBackAnimation);
+        scrollSv.value = withDelay(DELAY_RESET_POSITION, scrollGoBackAnimation);
+      } else {
+        inputSv.value = inputGoBackAnimation;
+        scrollSv.value = scrollGoBackAnimation;
+      }
+    })
+
+  const nativeGesture = Gesture.Native();
+
+  const composedGestures = Gesture.Simultaneous(
+    scrollPanGesture,
+    nativeGesture,
+  );
+
+  const inputAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: inputSv.value }],
+  }));
+
+  const scrollAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: scrollSv.value }],
+  }));
+  return (
+    <View style={styles.container}>
+      <GestureDetector gesture={composedGestures}>
+        <Animated.ScrollView
+          bounces={false}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          style={[styles.scrollView, scrollAnimatedStyle]}>
+        </Animated.ScrollView>
+      </GestureDetector>
+    </View>
+  );
+};
+
 function clamp(val, min, max) {
   return Math.min(Math.max(val, min), max);
 }
+
 
 
 
@@ -81,14 +147,14 @@ function MainScreen({navigation}) {
   }));
 
   const pan = Gesture.Pan()
-    .minDistance(50)
+    .minDistance(30)
     .onStart(() => {
       prevTranslationX.value = translationX.value;
       prevTranslationY.value = translationY.value;
     })
     .onUpdate((event) => {
-      const maxTranslateX = width*scale.value - width;
-      const maxTranslateY = height*scale.value;
+      const maxTranslateX = width / 2;
+      const maxTranslateY = height /2 ;
       translationY.value = clamp(
         prevTranslationY.value + event.translationY,
         -maxTranslateY,
@@ -103,24 +169,37 @@ function MainScreen({navigation}) {
       
     }
     })
-    .onEnd(()=>{
-      if (scale.value < 1) {
-        scale.value = withSpring(1);
-        translationX.value = withSpring(0);
-        translationY.value = withSpring(0);
-      }
-      else if (scale.value == 1){
-        if (translationY.value > 120)
+    .onFinalize(() =>{
+      if (translationY.value > 120 && scale.value  === 1)
         {
           closePhoto();
           console.log("exit");
           translationX.value = 0;
           translationY.value = 0;
         }
-        else{
+        else if (scale.value < 1){
           translationX.value = withSpring(0);
           translationY.value = withSpring(0);
         }
+    })
+    .onEnd((event)=>{
+      if (scale.value <= 1) {
+        scale.value = withSpring(1);
+        translationX.value = withSpring(0);
+        translationY.value = withSpring(0);
+      }
+      else {
+        translationX.value = withDecay({
+          velocity: event.velocityX,
+          rubberBandEffect:false,
+          clamp: [-50, 50],
+        });
+        translationY.value = withDecay({
+          velocity: event.velocityY,
+          rubberBandEffect:false,
+          clamp: [-50, 50],
+        });
+        
       }
   })
     .runOnJS(true);
