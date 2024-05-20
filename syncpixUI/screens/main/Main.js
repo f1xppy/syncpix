@@ -1,4 +1,4 @@
-import React,{ useState } from "react";
+import React,{ useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Modal,
   Button,
   StatusBar,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -24,6 +25,9 @@ import Animated, {
   withSpring,
   withDecay,
 } from "react-native-reanimated";
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import { Image } from 'expo-image';
 import SCREENS from '..';
 
@@ -106,6 +110,34 @@ function MainScreen({navigation}) {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
+  //const [hasPermission, setHasPermission] = useState(null);
+  const [status, requestPermission] = MediaLibrary.usePermissions();
+
+  const takeImageHandler = async () => {
+    // Запрос разрешений для медиатеки
+    if (status === null) {
+      const mediaLibraryPermission = await requestPermission();
+      if (mediaLibraryPermission.status !== 'granted') {
+        alert('Необходимо разрешение на доступ к медиатеке!');
+        return;
+      }
+    }
+
+    // Открытие камеры и получение изображения
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+    });
+
+    if (!result.cancelled) {
+      // Сохранение изображения в галерею
+      const asset = await MediaLibrary.createAssetAsync(result.uri);
+      await MediaLibrary.createAlbumAsync('Camera', asset, false);
+      alert('Фото сохранено в галерее!');
+    }
+  };
+
+
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
@@ -369,7 +401,7 @@ function MainScreen({navigation}) {
           </Animated.View>
         )}
       </ScrollView>
-      <TouchableOpacity style={styles.takePhotoContainer}>
+      <TouchableOpacity style={styles.takePhotoContainer} onPress={()=>takeImageHandler()}>
         <View style={styles.takePhotoBtn}>
           <Ionicons name="camera" size={photoWidth / 3} color="#000000" />
         </View>
@@ -390,19 +422,37 @@ function MainScreen({navigation}) {
 
 // Функция для отображения фотографий из папки assets
 const renderPhotos = (onPress) => {
-  // Принимаем функцию onPress
-  const photos = [
+  const [photos, setPhotos] = useState([]);
+  const [hasMediaPermission, setHasMediaPermission] = useState(null);
+
+  /*const photos = [
     require("../../assets/photo1.jpg"),
     require("../../assets/photo2.jpg"),
     require("../../assets/photo3.jpg"),
     // Добавьте больше фотографий по аналогии
-  ];
+  ];*/
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      setHasMediaPermission(status === 'granted');
+
+      if (status === 'granted') {
+        // Получение фотографий
+        const media = await MediaLibrary.getAssetsAsync({
+          mediaType: 'photo',
+          first: 200, 
+          sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+        });
+        setPhotos(media.assets);
+      }
+    })();
+  }, []);
   return photos.map((photo, index) => (
     <TouchableOpacity key={index} onPress={() => onPress(photo)}>
       <Animated.Image
-        //ref={openingPhotoRef}
-        source={photo}
+        key={photo.id}
+        source={{ uri: photo.uri }}
         style={styles.photo}
       />
     </TouchableOpacity>
