@@ -26,7 +26,6 @@ import Animated, {
   withDecay,
 } from "react-native-reanimated";
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { Image } from 'expo-image';
 import SCREENS from '..';
@@ -375,7 +374,7 @@ function MainScreen({navigation}) {
       >
         {selectedTab === "Фото" && (
           <Animated.View style={[styles.photoContainer]}>
-            {renderPhotos(openPhoto)}
+            <RenderPhotos onPress={openPhoto} />
           </Animated.View>
         )}
         {selectedTab === "Альбомы" && (
@@ -421,17 +420,9 @@ function MainScreen({navigation}) {
 }
 
 // Функция для отображения фотографий из папки assets
-const renderPhotos = (onPress) => {
+const RenderPhotos = ({ onPress }) => {
   const [photos, setPhotos] = useState([]);
   const [hasMediaPermission, setHasMediaPermission] = useState(null);
-
-  /*const photos = [
-    require("../../assets/photo1.jpg"),
-    require("../../assets/photo2.jpg"),
-    require("../../assets/photo3.jpg"),
-    // Добавьте больше фотографий по аналогии
-  ];*/
-
   useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -441,7 +432,7 @@ const renderPhotos = (onPress) => {
         // Получение фотографий
         const media = await MediaLibrary.getAssetsAsync({
           mediaType: 'photo',
-          first: 200, 
+          first: 100, 
           sortBy: [[MediaLibrary.SortBy.creationTime, false]],
         });
         setPhotos(media.assets);
