@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
   Modal,
-  Button,
+  FlatList,
   StatusBar,
   Alert,
 } from "react-native";
@@ -366,7 +366,8 @@ function MainScreen({navigation}) {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView
+      <View
+        style = {{flex: 1}}
         onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
         onTouchEnd={(e) => {
           menuSwipeHandle(this.touchX, e.nativeEvent.pageX);
@@ -399,7 +400,7 @@ function MainScreen({navigation}) {
             {renderCollections()}
           </Animated.View>
         )}
-      </ScrollView>
+      </View>
       <TouchableOpacity style={styles.takePhotoContainer} onPress={()=>takeImageHandler()}>
         <View style={styles.takePhotoBtn}>
           <Ionicons name="camera" size={photoWidth / 3} color="#000000" />
@@ -423,6 +424,10 @@ function MainScreen({navigation}) {
 const RenderPhotos = ({ onPress }) => {
   const [photos, setPhotos] = useState([]);
   const [hasMediaPermission, setHasMediaPermission] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [after, setAfter] = useState(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
   useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -430,24 +435,47 @@ const RenderPhotos = ({ onPress }) => {
 
       if (status === 'granted') {
         // Получение фотографий
-        const media = await MediaLibrary.getAssetsAsync({
-          mediaType: 'photo',
-          first: 100, 
-          sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-        });
-        setPhotos(media.assets);
+        loadPhotos();
       }
     })();
   }, []);
-  return photos.map((photo, index) => (
-    <TouchableOpacity key={index} onPress={() => onPress(photo)}>
-      <Animated.Image
-        key={photo.id}
-        source={{ uri: photo.uri }}
-        style={styles.photo}
-      />
+
+  const loadPhotos = async () => {
+    if (loading || !hasNextPage) return;
+    setLoading(true);
+
+    const media = await MediaLibrary.getAssetsAsync({
+      mediaType: 'photo',
+      first: 100, // Порция по 20 фотографий
+      after,
+      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+    });
+
+    setPhotos((prevPhotos) => [...prevPhotos, ...media.assets]);
+    setAfter(media.endCursor);
+    setHasNextPage(media.hasNextPage);
+    setLoading(false);
+  };
+
+  return (
+    <FlatList
+      data={photos}
+      keyExtractor={(photo) => photo.id}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => onPress(item)}>
+          <Animated.Image
+            source={{ uri: item.uri }}
+            style={styles.photo}
+          />
+
     </TouchableOpacity>
-  ));
+      )}
+      numColumns={3}
+      onEndReached={loadPhotos}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={loading ? <Text style={[styles.text, styles.syncText]}>loading...</Text> : null}
+    />
+  );
 };
 
 // Функция для отображения альбомов
