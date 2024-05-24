@@ -1,22 +1,46 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from scapy.layers.l2 import Ether, ARP
 from scapy.sendrecv import srp
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, create_engine, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app import config
 import psycopg2
 import logging
 import libpcap
+from pydantic import BaseModel
+from typing import Optional
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+import datetime
+
 
 logging.basicConfig(filename="log.txt",
                     filemode='a',
-                    level = logging.INFO)
+                    level=logging.INFO)
 
 
 app_config: config.Config = config.load_config()
 engine = create_engine(app_config.postgres_dsn)
 Base = declarative_base()
+
+SECRET_KEY = "secret_key"  # Замените на ваш секретный ключ
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True)
+    username = Column(String)
+    hashed_password = Column(String)
+    full_name = Column(String)
+    device_ids = Column(ARRAY(Integer))
 
 
 class Device(Base):
@@ -35,7 +59,74 @@ session = Session()
 app = FastAPI()
 
 
-@app.post("/devices/{id}")
+# Схемы Pydantic
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
+    full_name: Optional[str] = None
+
+
+class UserEdit(BaseModel):
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+
+
+class UserInDB(UserCreate):
+    hashed_password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+
+# Вспомогательные функции
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def create_access_token(data: dict, expires_delta: Optional[datetime.timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def get_user(db, username: str):
+    return db.query(User).filter(User.username == username).first()
+
+
+def authenticate_user(db, username: str, password: str):
+    user = get_user(db, username)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+
+def get_db():
+    db = Session()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@app.post("/devices/{id}", tags=["Devices"])
 async def add_device(account_id: int, mac: str, request: Request):
     client_host = request.client.host
     db_request = Device(
@@ -48,7 +139,7 @@ async def add_device(account_id: int, mac: str, request: Request):
     return {"message": "device saved"}
 
 
-@app.put("/devices/{id}")
+@app.put("/devices/{id}", tags=["Devices"])
 async def update_device_address(id:int, request: Request):
     device_to_update = session.query(Device).filter_by(id=id).first()
     if device_to_update:
@@ -59,7 +150,7 @@ async def update_device_address(id:int, request: Request):
         return {"message": "device not found"}
 
 
-@app.get("/devices")
+@app.get("/devices", tags=["Devices"])
 async def get_device_list(account_id: int):
     devices = session.query(Device).filter_by(account_id=account_id).all()
     if devices:
@@ -69,10 +160,9 @@ async def get_device_list(account_id: int):
         return {"message": "account not found"}
 
 
-@app.get("/devices/{id}")
+@app.get("/devices/{id}", tags=["Devices"])
 async def get_device_address(id: int):
     device = session.query(Device).filter_by(id=id).first()
-    logging.info("123123123123")
     ip_address = device.__dict__["ip"]
     mac_address = device.__dict__["mac"]
     logging.info(ip_address + ' ' + mac_address)
@@ -94,4 +184,75 @@ async def get_device_address(id: int):
 
     return check_connection(ip_address, mac_address)
 
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    user = get_user(db, username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+@app.post("/register", tags=["Users"])
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = get_user(db, username=user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    hashed_password = get_password_hash(user.password)
+    db_user = User(username=user.username, email=user.email, hashed_password=hashed_password, full_name=user.full_name)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return {f"message": f"user {user.username} successfully created"}
+
+
+@app.post("/token", tags=["Users"])
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token}
+
+@app.get("/users/me", tags=["Users"])
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
+
+@app.put("/users/me", tags=["Users"])
+async def update_user_me(user: UserEdit, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    if user.email:
+        current_user.email = user.email
+    if user.full_name:
+        current_user.full_name = user.full_name
+    if user.disabled is not None:
+        current_user.disabled = user.disabled
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
