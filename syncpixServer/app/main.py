@@ -245,13 +245,8 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 
 @app.put("/users/me", tags=["Users"])
 async def update_user_me(user: UserEdit, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    if user.email:
-        current_user.email = user.email
-    if user.full_name:
-        current_user.full_name = user.full_name
-    if user.disabled is not None:
-        current_user.disabled = user.disabled
-    db.add(current_user)
+    current_user.email = user.email
+    current_user.full_name = user.full_name
     db.commit()
     db.refresh(current_user)
     return current_user
