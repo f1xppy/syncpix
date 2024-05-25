@@ -51,6 +51,8 @@ class Device(Base):
     account_id = Column(Integer)
     ip = Column(String)
 
+Device.__table__.drop(engine)
+User.__table__.drop(engine)
 
 Base.metadata.create_all(engine)
 
@@ -134,7 +136,7 @@ def get_db():
         db.close()
 
 
-@app.post("/devices/", tags=["Devices"])
+@app.post("/devices", tags=["Devices"])
 async def add_device(account_id: int, mac: str, request: Request):
     client_host = request.client.host
     db_request = Device(
