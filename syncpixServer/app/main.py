@@ -14,6 +14,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 
 logging.basicConfig(filename="log.txt",
@@ -50,6 +51,8 @@ class Device(Base):
     account_id = Column(Integer)
     ip = Column(String)
 
+Device.__table__.drop(engine)
+User.__table__.drop(engine)
 
 Base.metadata.create_all(engine)
 
@@ -58,6 +61,13 @@ session = Session()
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Вы можете указать конкретные домены вместо ["*"]
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешить все методы (GET, POST, OPTIONS, и т.д.)
+    allow_headers=["*"],  # Разрешить все заголовки
+)
 
 # Схемы Pydantic
 class UserCreate(BaseModel):
@@ -126,7 +136,7 @@ def get_db():
         db.close()
 
 
-@app.post("/devices/{id}", tags=["Devices"])
+@app.post("/devices", tags=["Devices"])
 async def add_device(account_id: int, mac: str, request: Request):
     client_host = request.client.host
     db_request = Device(
