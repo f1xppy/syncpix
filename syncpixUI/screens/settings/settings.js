@@ -8,6 +8,7 @@ import {
   Dimensions,
   Modal,
   StatusBar,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +23,11 @@ function SettingsScreen() {
       {selectedSetting === null && (
         <View style={{ flex: 1 }}>
             {SettingsMain()}
+        </View>
+      )}
+      {selectedSetting === "Внешний вид" && (
+        <View style={{ flex: 1 }}>
+            {SettingsLook()}
         </View>
       )}
     </View>
@@ -45,7 +51,70 @@ function SettingsMain() {
         >
           <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
         </TouchableOpacity>
-        <View style={styles.ava}></View>
+        <Image
+          style={styles.ava}
+          source={require("../../assets/UI_Elements/unregistered.png")}
+          />
+      </View>
+      <TouchableOpacity
+        style={styles.settingBtn}
+        onPress={() => setSelectedSetting("Внешний вид")}
+      >
+        <Text style={[styles.text, styles.btnText]}>Внешний вид</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.settingBtn}
+        onPress={() => setSelectedSetting("Редактор")}
+      >
+        <Text style={[styles.text, styles.btnText]}>Редактор</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.settingBtn}
+        onPress={() => setSelectedSetting("Синхронизация")}
+      >
+        <Text style={[styles.text, styles.btnText]}>Синхронизация</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.settingBtn}
+        onPress={() => setSelectedSetting("Помощь")}
+      >
+        <Text style={[styles.text, styles.btnText]}>Помощь</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.settingBtn}
+        onPress={() => setSelectedSetting("О приложении")}
+      >
+        <Text style={[styles.text, styles.btnText]}>О приложении</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.settingBtn}
+        onPress={() => {
+          navigation.navigate(SCREENS.TEST);
+        }}
+      >
+        <Text style={[styles.text, styles.btnText]}>TEST</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function SettingsLook() {
+  const navigation = useNavigation();
+  return (
+    <View style={{ flex: 1 }} onPress={() => {logg();}}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => {
+            setSelectedSetting(null)
+          }}
+        >
+          <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+        </TouchableOpacity>
+        <Image
+          style={styles.ava}
+          source={require("../../assets/UI_Elements/unregistered.png")}
+          />
       </View>
       <TouchableOpacity
         style={styles.settingBtn}

@@ -103,17 +103,15 @@ function clamp(val, min, max) {
 }
 
 
-
-
-function MainScreen({navigation}) {
+function MainScreen({navigation, onPressAlbum }) {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
   //const [hasPermission, setHasPermission] = useState(null);
   const [status, requestPermission] = MediaLibrary.usePermissions();
+  const [selectedAlbum, setSelectedAlbum] = useState(null);
 
   const takeImageHandler = async () => {
-    // Запрос разрешений для медиатеки
     if (status === null) {
       const mediaLibraryPermission = await requestPermission();
       if (mediaLibraryPermission.status !== 'granted') {
@@ -122,15 +120,13 @@ function MainScreen({navigation}) {
       }
     }
 
-    // Открытие камеры и получение изображения
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.5,
     });
 
     if (!result.cancelled) {
-      // Сохранение изображения в галерею
-      const asset = await MediaLibrary.createAssetAsync(result.uri);
+      const asset = await MediaLibrary.createAssetAsync(result.asset.uri);
       await MediaLibrary.createAlbumAsync('Camera', asset, false);
       alert('Фото сохранено в галерее!');
     }
@@ -380,19 +376,8 @@ function MainScreen({navigation}) {
         )}
         {selectedTab === "Альбомы" && (
           <Animated.View style={styles.albumContainer}>
-            <TouchableOpacity>
-              <View style={styles.albumWrapper}>
-                <View style={styles.addAlbum}>
-                  <Ionicons
-                    name="add-sharp"
-                    size={folderWidth / 2}
-                    color="#8CE8E5"
-                  />
-                </View>
-                <Text style={[styles.albumText, styles.text]}>Добавить</Text>
-              </View>
-            </TouchableOpacity>
-            {renderAlbums()}
+            
+            <RenderAlbums onPressAlbum={onPressAlbum}/>
           </Animated.View>
         )}
         {selectedTab === "Подборки" && (
@@ -420,7 +405,8 @@ function MainScreen({navigation}) {
   );
 }
 
-// Функция для отображения фотографий из папки assets
+
+// Функция для отображения фотографий
 const RenderPhotos = ({ onPress }) => {
   const [photos, setPhotos] = useState([]);
   const [hasMediaPermission, setHasMediaPermission] = useState(null);
@@ -434,7 +420,6 @@ const RenderPhotos = ({ onPress }) => {
       setHasMediaPermission(status === 'granted');
 
       if (status === 'granted') {
-        // Получение фотографий
         loadPhotos();
       }
     })();
@@ -446,7 +431,7 @@ const RenderPhotos = ({ onPress }) => {
 
     const media = await MediaLibrary.getAssetsAsync({
       mediaType: 'photo',
-      first: 100, // Порция по 20 фотографий
+      first: 90,
       after,
       sortBy: [[MediaLibrary.SortBy.creationTime, false]],
     });
@@ -478,23 +463,42 @@ const RenderPhotos = ({ onPress }) => {
   );
 };
 
-// Функция для отображения альбомов
-const renderAlbums = () => {
-  const albums = [
-    require("../../assets/photo1.jpg"),
-    require("../../assets/photo2.jpg"),
-    require("../../assets/photo3.jpg"),
-    // Добавьте больше альбомов по аналогии
-  ];
 
-  return albums.map((album, index) => (
-    <TouchableOpacity key={index}>
+const RenderAlbums = ({ onPressAlbum }) => {
+  const [albums, setAlbums] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === 'granted') {
+        const albumList = await MediaLibrary.getAlbumsAsync();
+        const albumsWithCover = await Promise.all(albumList.map(async (album) => {
+          const albumAssets = await MediaLibrary.getAssetsAsync({ album: album.id, first: 1 });
+          return { ...album, cover: albumAssets.assets[0]?.uri };
+        }));
+        setAlbums(albumsWithCover);
+      }
+    })();
+  }, []);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity key={item.id} onPress={() => onPressAlbum(item.id)}>
       <View style={styles.albumWrapper}>
-        <Image source={album} style={styles.album} />
-        <Text style={[styles.albumText, styles.text]}>Sample</Text>
+        <Image source={{ uri: item.cover }} style={styles.album} />
+        <Text style={[styles.albumText, styles.text]}>{item.title}</Text>
       </View>
     </TouchableOpacity>
-  ));
+  );
+
+  return (
+    <FlatList
+      data={albums}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id}
+      numColumns={2}
+      //contentContainerStyle={styles.albumListContainer}
+    />
+  );
 };
 
 // Функция для отображения подборок
@@ -550,6 +554,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     fontSize: 20,
+  },
+  albumListContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 10,
+    alignContent: 'center',
+    justifyContent: 'space-between',
   },
   tab: {
     padding: 10,
