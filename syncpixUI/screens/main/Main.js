@@ -28,6 +28,7 @@ import Animated, {
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { Image } from 'expo-image';
+import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 
 const { width, height } = Dimensions.get("window");
@@ -103,7 +104,7 @@ function clamp(val, min, max) {
 }
 
 
-function MainScreen({navigation, onPressAlbum }) {
+function MainScreen({navigation}) {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
@@ -377,7 +378,7 @@ function MainScreen({navigation, onPressAlbum }) {
         {selectedTab === "Альбомы" && (
           <Animated.View style={styles.albumContainer}>
             
-            <RenderAlbums onPressAlbum={onPressAlbum}/>
+            <RenderAlbums/>
           </Animated.View>
         )}
         {selectedTab === "Подборки" && (
@@ -464,8 +465,9 @@ const RenderPhotos = ({ onPress }) => {
 };
 
 
-const RenderAlbums = ({ onPressAlbum }) => {
+const RenderAlbums = () => {
   const [albums, setAlbums] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
@@ -482,7 +484,7 @@ const RenderAlbums = ({ onPressAlbum }) => {
   }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity key={item.id} onPress={() => onPressAlbum(item.id)}>
+    <TouchableOpacity key={item.id} onPress={() => navigation.navigate(SCREENS.ALBUMCONTENTS, { albumId: item.id, albumTitle: item.title })}>
       <View style={styles.albumWrapper}>
         <Image source={{ uri: item.cover }} style={styles.album} />
         <Text style={[styles.albumText, styles.text]}>{item.title}</Text>
