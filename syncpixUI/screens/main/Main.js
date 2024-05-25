@@ -24,6 +24,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withDecay,
+  withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
@@ -35,73 +37,11 @@ const { width, height } = Dimensions.get("window");
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
 
-const INITIAL_POS_Y_INPUT = -50;
-
-const INITIAL_POS_Y_SCROLL = 0;
-
-const DELAY_RESET_POSITION = 500;
-
-const CustomScrollView = () => {
-  const inputSv = useSharedValue(INITIAL_POS_Y_INPUT);
-  const scrollSv = useSharedValue(0);
-
-  const scrollPanGesture = Gesture.Pan()
-    .onUpdate(({ translationY }) => {
-      const clampedValue = clamp(translationY, 0, -INITIAL_POS_Y_INPUT);
-
-      inputSv.value = interpolate(
-        clampedValue,
-        [0, -INITIAL_POS_Y_INPUT],
-        [INITIAL_POS_Y_INPUT, 0],
-      );
-      scrollSv.value = clampedValue;
-    })
-    .onFinalize(({ translationY }) => {
-      const inputGoBackAnimation = withTiming(INITIAL_POS_Y_INPUT);
-      const scrollGoBackAnimation = withTiming(INITIAL_POS_Y_SCROLL);
-
-      if (translationY >= -INITIAL_POS_Y_INPUT) {
-        runOnJS(navigate)(Screens.NewTask);
-
-        inputSv.value = withDelay(DELAY_RESET_POSITION, inputGoBackAnimation);
-        scrollSv.value = withDelay(DELAY_RESET_POSITION, scrollGoBackAnimation);
-      } else {
-        inputSv.value = inputGoBackAnimation;
-        scrollSv.value = scrollGoBackAnimation;
-      }
-    })
-
-  const nativeGesture = Gesture.Native();
-
-  const composedGestures = Gesture.Simultaneous(
-    scrollPanGesture,
-    nativeGesture,
-  );
-
-  const inputAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: inputSv.value }],
-  }));
-
-  const scrollAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: scrollSv.value }],
-  }));
-  return (
-    <View style={styles.container}>
-      <GestureDetector gesture={composedGestures}>
-        <Animated.ScrollView
-          bounces={false}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={[styles.scrollView, scrollAnimatedStyle]}>
-        </Animated.ScrollView>
-      </GestureDetector>
-    </View>
-  );
+const clamp = (value, min, max) => {
+  'worklet';
+  return Math.min(Math.max(value, min), max);
 };
 
-function clamp(val, min, max) {
-  return Math.min(Math.max(val, min), max);
-}
 
 
 function MainScreen({navigation}) {
@@ -111,6 +51,15 @@ function MainScreen({navigation}) {
   //const [hasPermission, setHasPermission] = useState(null);
   const [status, requestPermission] = MediaLibrary.usePermissions();
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+
+  const openPhoto = (photo) => {
+    isVisible.value = true;
+    setSelectedPhoto(photo);
+  };
+
+  const closePhoto = () => {
+    setSelectedPhoto(null);
+  };
 
   const takeImageHandler = async () => {
     if (status === null) {
@@ -140,7 +89,31 @@ function MainScreen({navigation}) {
   };
 
   const scale = useSharedValue(1);
-  const startScale = useSharedValue(0);
+  const startScale = useSharedValue(1);
+  const translationX = useSharedValue(0);
+  const translationY = useSharedValue(0);
+  const prevTranslationX = useSharedValue(0);
+  const prevTranslationY = useSharedValue(0);
+  const isClosing = useSharedValue(false);
+  const isVisible = useSharedValue(true);
+
+
+  const closePhotoWithAnimation = () => {
+    translationY.value = withTiming(
+      height,
+      { duration: 300 },
+      (isFinished) => {
+        if (isFinished) {
+          runOnJS(closePhoto)();
+          isClosing.value = false;
+          isVisible.value = false;
+          translationX.value = 0;
+          translationY.value = 0;
+        }
+      }
+    );
+  };
+
 
   const pinch = Gesture.Pinch()
     .onStart(() => {
@@ -153,95 +126,113 @@ function MainScreen({navigation}) {
         Math.min(width / 100, height / 100)
       );
     })
-    .onEnd(()=>{
+    .onEnd(() => {
       if (scale.value < 1) {
         scale.value = withSpring(1);
         translationX.value = withSpring(0);
         translationY.value = withSpring(0);
       }
-    })
-    .runOnJS(true);
-  const translationX = useSharedValue(0);
-  const translationY = useSharedValue(0);
-  const prevTranslationX = useSharedValue(0);
-  const prevTranslationY = useSharedValue(0);
+    });
 
-  const animatedPhotoStyles = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translationX.value },
-      { translateY: translationY.value },
-      { scale: scale.value },
-    ],
-  }));
-
-  const pan = Gesture.Pan()
-    .minDistance(30)
+    const pan = Gesture.Pan()
+    .minDistance(10)
     .onStart(() => {
       prevTranslationX.value = translationX.value;
       prevTranslationY.value = translationY.value;
     })
     .onUpdate((event) => {
-      const maxTranslateX = width / 2;
-      const maxTranslateY = height /2 ;
-      translationY.value = clamp(
-        prevTranslationY.value + event.translationY,
-        -maxTranslateY,
-        maxTranslateY
-      );
-      if (scale.value !== 1){
+      if (scale.value === 1) {
+        translationY.value = clamp(
+          prevTranslationY.value + event.translationY,
+          -height / 2,
+          height / 2
+        );
+      } else {
+        const maxTranslateX = (width * scale.value - width) / 2;
+        const maxTranslateY = (height * scale.value - height) / 2;
+
         translationX.value = clamp(
           prevTranslationX.value + event.translationX,
           -maxTranslateX,
           maxTranslateX
-      );
-      
-    }
-    })
-    .onFinalize(() =>{
-      if (translationY.value > 120 && scale.value  === 1)
-        {
-          closePhoto();
-          console.log("exit");
-          translationX.value = 0;
-          translationY.value = 0;
-        }
-        else if (scale.value < 1){
-          translationX.value = withSpring(0);
-          translationY.value = withSpring(0);
-        }
-    })
-    .onEnd((event)=>{
-      if (scale.value <= 1) {
-        scale.value = withSpring(1);
-        translationX.value = withSpring(0);
-        translationY.value = withSpring(0);
+        );
+        translationY.value = clamp(
+          prevTranslationY.value + event.translationY,
+          -maxTranslateY,
+          maxTranslateY
+        );
       }
-      else {
+    })
+    .onEnd((event) => {
+      if (scale.value > 1) {
         translationX.value = withDecay({
           velocity: event.velocityX,
-          rubberBandEffect:false,
-          clamp: [-50, 50],
+          clamp: [
+            -(width * scale.value - width) / 2,
+            (width * scale.value - width) / 2,
+          ],
         });
         translationY.value = withDecay({
           velocity: event.velocityY,
-          rubberBandEffect:false,
-          clamp: [-50, 50],
+          clamp: [
+            -(height * scale.value - height) / 2,
+            (height * scale.value - height) / 2,
+          ],
         });
-        
+      } else {
+        if (translationY.value > 120 && scale.value === 1 && !isClosing.value) {
+          isClosing.value = true;
+          runOnJS(closePhotoWithAnimation)(); 
+        } else if (scale.value <= 1) {
+          translationX.value = withSpring(0);
+          translationY.value = withSpring(0);
+        }
       }
-  })
-    .runOnJS(true);
+    });
 
 
-    const composedFullPhoto = Gesture.Simultaneous(pan, pinch)
 
-    const openPhoto = (photo) => {
-      setSelectedPhoto(photo);
-    };
+    const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd((event) => {
+      const tapX = event.absoluteX - width / 2;
+      const tapY = event.absoluteY - height / 2;
+      const newScale = scale.value > 1 ? 1 : 2;
+
+      if (newScale === 1) {
+        scale.value = withSpring(1);
+        translationX.value = withSpring(0);
+        translationY.value = withSpring(0);
+      } else {
+        const maxTranslateX = (width * newScale - width) / 2;
+        const maxTranslateY = (height * newScale - height) / 2;
+
+        scale.value = withSpring(newScale);
+        translationX.value = withSpring(
+          clamp(tapX * -1 * (newScale - 1), -maxTranslateX, maxTranslateX)
+        );
+        translationY.value = withSpring(
+          clamp(tapY * -1 * (newScale - 1), -maxTranslateY, maxTranslateY)
+        );
+      }
+    });
+
+
+    
   
-    const closePhoto = () => {
-      setSelectedPhoto(null);
-    };
+  
+    const animatedPhotoStyles = useAnimatedStyle(() => ({
+      opacity: isVisible.value ? 1 : 0,
+      transform: [
+        { translateX: translationX.value },
+        { translateY: translationY.value },
+        { scale: scale.value },
+      ],
+    }));
+    
+    const composedFullPhoto = Gesture.Simultaneous(pan, pinch, doubleTap);
+
+    
 
   const menuSwipeHandle = (start, end) => {
     /*const childXValue = useRef(new Animated.Value((start + end) / 2)).current

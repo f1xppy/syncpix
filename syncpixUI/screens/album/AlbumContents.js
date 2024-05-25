@@ -24,6 +24,8 @@ const AlbumContents = ({ route}) => {
   const [loading, setLoading] = useState(false);
   const [after, setAfter] = useState(null);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  
   const navigation = useNavigation();
 
   useEffect(() => {
