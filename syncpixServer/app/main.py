@@ -40,7 +40,6 @@ class User(Base):
     username = Column(String)
     hashed_password = Column(String)
     full_name = Column(String)
-    device_ids = Column(ARRAY(Integer))
     disabled = Column(Integer, default=0)
 
 
@@ -71,7 +70,6 @@ class UserCreate(BaseModel):
 class UserEdit(BaseModel):
     email: Optional[str] = None
     full_name: Optional[str] = None
-    device_ids: Optional[list] = None
 
 
 class UserInDB(UserCreate):
