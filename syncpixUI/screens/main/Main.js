@@ -359,6 +359,14 @@ function MainScreen({navigation}) {
           style={[animatedPhotoStyles, styles.fullPhoto]}
         />
       </GestureDetector>
+      <View style={styles.bottomTab}>
+        <TouchableOpacity style={styles.bottomBtn}>
+          <Ionicons name="beer" size={24}/>
+          <Text>
+            Добавить в синхронизацию
+          </Text>
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   ));
 
@@ -587,6 +595,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#333333',
   },
+  bottomTab: {
+    alignItems: 'center',
+    backgroundColor: '#222222',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    position: 'absolute',
+    height: 50,
+    width: width,
+    top: height - 50,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -600,6 +620,12 @@ const styles = StyleSheet.create({
     width: 286,
     height: 35,
     paddingLeft: 8,
+  },
+  bottomBtn:{
+    borderRadius: 10,
+    backgroundColor: "#8CE8E5",
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 20,
