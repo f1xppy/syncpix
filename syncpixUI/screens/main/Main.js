@@ -35,7 +35,7 @@ import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 
-
+const [changesSize, setChangesSize] = useState(0);
 const { width, height } = Dimensions.get("window");
 const server_address = 'http://192.168.0.106:8000'
 const photoWidth = (width - 38) / 3;
@@ -184,6 +184,16 @@ function MainScreen({navigation}) {
         translationX.value = withTiming(0, { duration: 300 });
       });
     }
+  };
+  const getChangesSize = async() => {
+    apiUrl=server_address + '/users/'+account_id+'/syncsize';
+    await axios.get(apiUrl).then(function(response) {
+      const data = response.data;
+      setChangesSize(data);
+    });
+  };
+  const getChanges = async() => {
+
   };
   const toggleSync = async (photo) => {
       const formData = new FormData();
@@ -357,7 +367,7 @@ function MainScreen({navigation}) {
         </TouchableOpacity>
         <TouchableOpacity>
           <Animated.View style={styles.syncBtn}>
-            <Text style={[styles.text, styles.syncText]}>Скачать ...</Text>
+            <Text onPress={()=> getChanges()} style={[styles.text, styles.syncText]}>Скачать {changesSize}</Text>
           </Animated.View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setSyncModalVisible(!syncModalVisible)}>
@@ -396,7 +406,7 @@ function MainScreen({navigation}) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.iconContainer}
-          onPress={() => setSyncModalVisible(true)}
+          onPress={[() => setSyncModalVisible(true), () => getChangesSize()]}
         >
           <Animated.Image
             name="sync"
@@ -494,65 +504,6 @@ function MainScreen({navigation}) {
     </GestureHandlerRootView>
   );
 }
-
-/*
-Функция для отображения фотографий
-const RenderPhotos = ({ onPress }) => {
-  const [photos, setPhotos] = useState([]);
-  const [hasMediaPermission, setHasMediaPermission] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [after, setAfter] = useState(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      setHasMediaPermission(status === 'granted');
-
-      if (status === 'granted') {
-        loadPhotos();
-      }
-    })();
-  }, []);
-
-  const loadPhotos = async () => {
-    if (loading || !hasNextPage) return;
-    setLoading(true);
-
-    const media = await MediaLibrary.getAssetsAsync({
-      mediaType: 'photo',
-      first: 90,
-      after,
-      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-    });
-
-    setPhotos((prevPhotos) => [...prevPhotos, ...media.assets]);
-    setAfter(media.endCursor);
-    setHasNextPage(media.hasNextPage);
-    setLoading(false);
-  };
-
-  return (
-    <FlatList
-      data={photos}
-      keyExtractor={(photo) => photo.id}
-      renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => onPress(item)}>
-          <Animated.Image
-            source={{ uri: item.uri }}
-            style={styles.photo}
-          />
-
-    </TouchableOpacity>
-      )}
-      numColumns={3}
-      onEndReached={loadPhotos}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={loading ? <Text style={[styles.text, styles.syncText]}>loading...</Text> : null}
-    />
-  );
-};
-*/
 
 const RenderAlbums = () => {
   const [albums, setAlbums] = useState([]);
