@@ -231,6 +231,9 @@ const AlbumContents = ({ route}) => {
   }, []);
 
   const loadPhotos = async () => {
+    if (status.status !== 'granted') {
+      await requestPermission();
+    }
     if (loading || !hasNextPage) return;
     setLoading(true);
 

@@ -33,7 +33,11 @@ import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 import axios from 'axios';
+import * as FileSystem from 'expo-file-system';
+
+
 const { width, height } = Dimensions.get("window");
+const server_address = 'http://192.168.0.106:8000'
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
 const account_id = 1;
@@ -62,6 +66,7 @@ const RenderPhotos = ({ photos, loadMorePhotos, onPress }) => (
 );
 
 function MainScreen({navigation}) {
+  const [base64Image, setBase64Image] = useState(null);
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
@@ -112,6 +117,9 @@ function MainScreen({navigation}) {
   };
 
   const loadPhotos = async () => {
+    if (status.status !== 'granted') {
+      await requestPermission();
+    }
     if (loading || !hasNextPage) return;
     setLoading(true);
 
@@ -177,9 +185,19 @@ function MainScreen({navigation}) {
       });
     }
   };
-  const toggleSync = async(photo) => {
-      apiUrl='http://192.168.0.106/users/'+account_id+'/upload';
-      await axios.post(apiUrl, photo);
+  const toggleSync = async (photo) => {
+      const formData = new FormData();
+    formData.append('file', {
+      uri: photo['uri'],
+      name: photo['filename'],
+      type: 'image/jpeg'
+    });
+      apiUrl=server_address + '/users/'+account_id+'/upload';
+      await axios.post(apiUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+  });
   };
   const pinch = Gesture.Pinch()
     .onStart(() => {
