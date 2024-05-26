@@ -15,10 +15,10 @@ import {
 } from "react-native";
 import axios from 'axios'; // запросы
 
-import DeviceInfo from 'react-native-device-info'; // чтобы брать название устройства
+// import DeviceInfo from 'react-native-device-info'; // чтобы брать название устройства
 
 export default function Testik() {
-  const fs = require('fs'); //файловая система
+  //const fs = require('fs'); //файловая система
   const [devices, setDevices] = useState('none'); // тестовое текстовое поле
   const getDevices = async() => { // получить список устройств
     
@@ -27,18 +27,18 @@ export default function Testik() {
       const data = response.data;
       const dataString = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
       
-      fs.writeFile('../devices.txt', dataString, (err) => {
+      /*fs.writeFile('../devices.txt', dataString, (err) => {
         if (err) {
           console.error('Error writing to file', err);
         } else {
           console.log('File has been saved');
         }
-      });
+      });*/
     });
   }
   const addDevice = async() => {    // добавить себя
     const account_id = 1;
-    const deviceName = 'Redmi Note 15';д
+    const deviceName = 'Redmi Note 15';
     const deviceName_enq = encodeURIComponent(deviceName);
     const apiUrl = 'http://127.0.0.1:8000/devices?account_id=1&name='+deviceName_enq;
     setDevices(apiUrl);
