@@ -310,5 +310,20 @@ async def list_files(id: int):
 
     objects = minio_client.list_objects(bucket_name)
 
-    file_list = [{"filename": obj.object_name, "size": obj.size} for obj in objects]
-    return {"files": file_list}
+    file_list = [obj.object_name for obj in objects]
+    return file_list
+
+
+@app.get("/users/{id}/syncsize", tags=["Sync"])
+async def list_files(id: int):
+    bucket_name = f"user{id}"
+
+    if not minio_client.bucket_exists(bucket_name):
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    objects = minio_client.list_objects(bucket_name)
+    size = 0
+    for obj in objects:
+        size += int(obj.size)
+    size_mb = (size/1024)/1024
+    return round(size_mb, 3)

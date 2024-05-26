@@ -43,7 +43,8 @@ const AlbumContents = ({ route}) => {
   const [after, setAfter] = useState(null);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  
+  const [status, requestPermission] = MediaLibrary.usePermissions();
+
   const navigation = useNavigation();
 
   const openPhoto = (photo) => {
