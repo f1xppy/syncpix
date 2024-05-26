@@ -35,7 +35,6 @@ import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 
-
 const { width, height } = Dimensions.get("window");
 const server_address = 'http://192.168.0.106:8000'
 const photoWidth = (width - 38) / 3;
@@ -194,7 +193,16 @@ function MainScreen({navigation}) {
     setSyncModalVisible(true);
   };
   const getChanges = async() => {
-
+    apiUrl=server_address + '/users/'+account_id+'/list';
+    await axios.get(apiUrl).then(function(response) {
+      const data = response.data;
+    });
+    for (let i = 0; i < data.length; i++) {
+      apiUrl=server_address+'/users/'+account_id+'/download?filename='+data[i];
+      await axios.get(apiUrl);
+      apiUrl=server_address+'/users/'+account_id+'/delete?filename='+data[i];
+      await axios.delete(apiUrl);
+  }
   };
   const toggleSync = async (photo) => {
       const formData = new FormData();
@@ -368,7 +376,7 @@ function MainScreen({navigation}) {
         </TouchableOpacity>
         <TouchableOpacity>
           <Animated.View style={styles.syncBtn}>
-            <Text onPress={()=> getChanges()} style={[styles.text, styles.syncText]}>Скачать {changesSize}</Text>
+            <Text onPress={()=> getChanges()} style={[styles.text, styles.syncText]}>Скачать {changesSize}Mb</Text>
           </Animated.View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setSyncModalVisible(!syncModalVisible)}>
