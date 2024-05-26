@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File
+from fastapi.responses import JSONResponse
 from scapy.layers.l2 import Ether, ARP
 from scapy.sendrecv import srp
 from sqlalchemy import Column, Integer, String, create_engine, ARRAY
@@ -15,6 +16,15 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import datetime
 from fastapi.middleware.cors import CORSMiddleware
+import minio
+
+
+minio_client = minio.Minio(
+        '127.0.0.1:9000',
+        access_key="syncpix",
+        secret_key="syncpixpass",
+        secure=False
+    )
 
 
 logging.basicConfig(filename="log.txt",
@@ -261,3 +271,20 @@ async def update_user_me(user: UserEdit, db: Session = Depends(get_db), current_
     db.refresh(current_user)
     return current_user
 
+
+@app.post("/users/{id}/upload", tags=["Sync"])
+async def upload_photo(file: UploadFile, id: int):
+    bucket_name = str(id)
+    found = minio_client.bucket_exists(bucket_name)
+    if not found:
+        minio_client.make_bucket(bucket_name)
+    file_data = await file.read()
+    file_name = file.filename
+    minio_client.put_object(
+        bucket_name,
+        file_name,
+        data=file_data,
+        length=len(file_data),
+        content_type=file.content_type
+    )
+    return JSONResponse(content={"filename": file_name}, status_code=200)
