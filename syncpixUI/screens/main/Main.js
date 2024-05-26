@@ -42,15 +42,37 @@ const clamp = (value, min, max) => {
   return Math.min(Math.max(value, min), max);
 };
 
-
+const RenderPhotos = ({ photos, loadMorePhotos, onPress }) => (
+  <FlatList
+    data={photos}
+    keyExtractor={(photo) => photo.id}
+    renderItem={({ item }) => (
+      <TouchableOpacity onPress={() => onPress(item)}>
+        <Animated.Image
+          source={{ uri: item.uri }}
+          style={styles.photo}
+        />
+      </TouchableOpacity>
+    )}
+    numColumns={3}
+    onEndReached={loadMorePhotos}
+    onEndReachedThreshold={0.5}
+    ListFooterComponent={<Text style={[styles.text, styles.syncText]}>loading...</Text>}
+  />
+);
 
 function MainScreen({navigation}) {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
   //const [hasPermission, setHasPermission] = useState(null);
+  const [photos, setPhotos] = useState([]);
   const [status, requestPermission] = MediaLibrary.usePermissions();
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [after, setAfter] = useState(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
 
   const openPhoto = (photo) => {
     isVisible.value = true;
@@ -72,11 +94,12 @@ function MainScreen({navigation}) {
 
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.5,
+      quality: 1,
+      allowsEditing: false,
     });
 
     if (!result.cancelled) {
-      const asset = await MediaLibrary.createAssetAsync(result.asset.uri);
+      const asset = await MediaLibrary.createAssetAsync(result.assets[0].uri);
       await MediaLibrary.createAlbumAsync('Camera', asset, false);
       alert('Фото сохранено в галерее!');
     }
@@ -86,6 +109,23 @@ function MainScreen({navigation}) {
 
   const handleTabPress = (tab) => {
     setSelectedTab(tab);
+  };
+
+  const loadPhotos = async () => {
+    if (loading || !hasNextPage) return;
+    setLoading(true);
+
+    const media = await MediaLibrary.getAssetsAsync({
+      mediaType: 'photo',
+      first: 90,
+      after,
+      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+    });
+
+    setPhotos((prevPhotos) => [...prevPhotos, ...media.assets]);
+    setAfter(media.endCursor);
+    setHasNextPage(media.hasNextPage);
+    setLoading(false);
   };
 
   const scale = useSharedValue(1);
@@ -101,7 +141,7 @@ function MainScreen({navigation}) {
   const closePhotoWithAnimation = () => {
     translationY.value = withTiming(
       height,
-      { duration: 300 },
+      { duration: 50 },
       (isFinished) => {
         if (isFinished) {
           runOnJS(closePhoto)();
@@ -114,6 +154,29 @@ function MainScreen({navigation}) {
     );
   };
 
+  const swipeToNextPhoto = () => {
+    const currentIndex = photos.findIndex(photo => photo.uri === selectedPhoto.uri);
+    const nextIndex = currentIndex - 1;
+    if (nextIndex > 0) {
+      const nextPhoto = photos[nextIndex];
+      translationX.value = withTiming(width + 100, { duration: 300 }, () => {
+        runOnJS(setSelectedPhoto)(nextPhoto);
+        translationX.value = withTiming(0, { duration: 300 });
+      });
+    }
+  };
+
+  const swipeToPreviousPhoto = () => {
+    const currentIndex = photos.findIndex(photo => photo.uri === selectedPhoto.uri);
+    const prevIndex = currentIndex + 1;
+    if (prevIndex < photos.length) {
+      const prevPhoto = photos[prevIndex];
+      translationX.value = withTiming(-width - 100, { duration: 300 }, () => {
+        runOnJS(setSelectedPhoto)(prevPhoto);
+        translationX.value = withTiming(0, { duration: 300 });
+      });
+    }
+  };
 
   const pinch = Gesture.Pinch()
     .onStart(() => {
@@ -134,7 +197,7 @@ function MainScreen({navigation}) {
       }
     });
 
-    const pan = Gesture.Pan()
+  const pan = Gesture.Pan()
     .minDistance(10)
     .onStart(() => {
       prevTranslationX.value = translationX.value;
@@ -182,10 +245,18 @@ function MainScreen({navigation}) {
       } else {
         if (translationY.value > 120 && scale.value === 1 && !isClosing.value) {
           isClosing.value = true;
-          runOnJS(closePhotoWithAnimation)(); 
+          runOnJS(closePhotoWithAnimation)();
         } else if (scale.value <= 1) {
           translationX.value = withSpring(0);
           translationY.value = withSpring(0);
+        }
+
+        if (scale.value === 1) {
+          if (event.translationX > 50) {
+            runOnJS(swipeToNextPhoto)();
+          } else if (event.translationX < -50) {
+            runOnJS(swipeToPreviousPhoto)();
+          }
         }
       }
     });
@@ -216,11 +287,7 @@ function MainScreen({navigation}) {
         );
       }
     });
-
-
     
-  
-  
     const animatedPhotoStyles = useAnimatedStyle(() => ({
       opacity: isVisible.value ? 1 : 0,
       transform: [
@@ -355,7 +422,7 @@ function MainScreen({navigation}) {
         </TouchableOpacity>
       </View>
       <View
-        style = {{flex: 1}}
+        style = {{flex: 1, alignItems: "center", flexWrap: "wrap"}}
         onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
         onTouchEnd={(e) => {
           menuSwipeHandle(this.touchX, e.nativeEvent.pageX);
@@ -363,14 +430,11 @@ function MainScreen({navigation}) {
       >
         {selectedTab === "Фото" && (
           <Animated.View style={[styles.photoContainer]}>
-            <RenderPhotos onPress={openPhoto} />
+            <RenderPhotos photos={photos} loadMorePhotos={loadPhotos} onPress={openPhoto} />
           </Animated.View>
         )}
         {selectedTab === "Альбомы" && (
-          <Animated.View style={styles.albumContainer}>
-            
             <RenderAlbums/>
-          </Animated.View>
         )}
         {selectedTab === "Подборки" && (
           <Animated.View style={styles.collectionContainer}>
@@ -380,7 +444,12 @@ function MainScreen({navigation}) {
       </View>
       <TouchableOpacity style={styles.takePhotoContainer} onPress={()=>takeImageHandler()}>
         <View style={styles.takePhotoBtn}>
-          <Ionicons name="camera" size={photoWidth / 3} color="#000000" />
+          {selectedTab === "Фото" && (
+            <Ionicons name="camera" size={photoWidth / 3} color="#000000" />
+          )}
+          {selectedTab === "Альбомы" && (
+            <Ionicons name="add-sharp" size={photoWidth / 3} color="#000000" />
+          )}
         </View>
       </TouchableOpacity>
       <Modal visible={selectedPhoto !== null} animationType="fade">
@@ -397,8 +466,8 @@ function MainScreen({navigation}) {
   );
 }
 
-
-// Функция для отображения фотографий
+/*
+Функция для отображения фотографий
 const RenderPhotos = ({ onPress }) => {
   const [photos, setPhotos] = useState([]);
   const [hasMediaPermission, setHasMediaPermission] = useState(null);
@@ -454,7 +523,7 @@ const RenderPhotos = ({ onPress }) => {
     />
   );
 };
-
+*/
 
 const RenderAlbums = () => {
   const [albums, setAlbums] = useState([]);
@@ -489,7 +558,7 @@ const RenderAlbums = () => {
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       numColumns={2}
-      //contentContainerStyle={styles.albumListContainer}
+      contentContainerStyle={styles.albumListContainer}
     />
   );
 };
