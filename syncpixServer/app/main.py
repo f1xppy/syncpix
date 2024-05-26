@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from scapy.layers.l2 import Ether, ARP
 from scapy.sendrecv import srp
 from sqlalchemy import Column, Integer, String, create_engine, ARRAY
@@ -291,3 +291,29 @@ async def upload_photo(file: UploadFile, id: int):
             content_type=file.content_type
     )
     return JSONResponse(content={"filename": file_name}, status_code=200)
+
+
+@app.get("/users/{id}/download")
+async def download_file(id: int, filename: str):
+    bucket_name = f"user{id}"
+
+    if not minio_client.bucket_exists(bucket_name):
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    response = minio_client.get_object(bucket_name, filename)
+    metadata = minio_client.stat_object(bucket_name, filename)
+
+    return StreamingResponse(response, media_type=metadata.content_type,
+                             headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+
+@app.delete("/users/{id}/delete")
+async def delete_file(id: int, filename: str):
+    bucket_name = f"user{id}"
+
+    if not minio_client.bucket_exists(bucket_name):
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    minio_client.remove_object(bucket_name, filename)
+    
+    return {"detail": f"File '{filename}' deleted successfully."}
