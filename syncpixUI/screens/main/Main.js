@@ -35,7 +35,7 @@ import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 
-const [changesSize, setChangesSize] = useState(0);
+
 const { width, height } = Dimensions.get("window");
 const server_address = 'http://192.168.0.106:8000'
 const photoWidth = (width - 38) / 3;
@@ -66,7 +66,7 @@ const RenderPhotos = ({ photos, loadMorePhotos, onPress }) => (
 );
 
 function MainScreen({navigation}) {
-  const [base64Image, setBase64Image] = useState(null);
+  const [changesSize, setChangesSize] = useState(0);
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
@@ -191,6 +191,7 @@ function MainScreen({navigation}) {
       const data = response.data;
       setChangesSize(data);
     });
+    setSyncModalVisible(true);
   };
   const getChanges = async() => {
 
@@ -406,7 +407,7 @@ function MainScreen({navigation}) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.iconContainer}
-          onPress={[() => setSyncModalVisible(true), () => getChangesSize()]}
+          onPress={() => getChangesSize()}
         >
           <Animated.Image
             name="sync"
