@@ -1,0 +1,4 @@
+ЭТО ДРАФТ
+account_id=1
+name='default name'
+devices={ {1, 'Device1 name'}, {2, 'Device2 name'} }
