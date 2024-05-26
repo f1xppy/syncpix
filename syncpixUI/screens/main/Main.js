@@ -32,11 +32,11 @@ import * as MediaLibrary from 'expo-media-library';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
-
+import axios from 'axios';
 const { width, height } = Dimensions.get("window");
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
-
+const account_id = 1;
 const clamp = (value, min, max) => {
   'worklet';
   return Math.min(Math.max(value, min), max);
@@ -177,7 +177,10 @@ function MainScreen({navigation}) {
       });
     }
   };
-
+  const toggleSync = async(photo) => {
+      apiUrl='http://192.168.0.106/users/'+account_id+'/upload';
+      await axios.post(apiUrl, photo);
+  };
   const pinch = Gesture.Pinch()
     .onStart(() => {
       startScale.value = scale.value;
@@ -360,7 +363,7 @@ function MainScreen({navigation}) {
         />
       </GestureDetector>
       <View style={styles.bottomTab}>
-        <TouchableOpacity style={styles.bottomBtn}>
+        <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
           <Ionicons name="beer" size={24}/>
           <Text>
             Добавить в синхронизацию
