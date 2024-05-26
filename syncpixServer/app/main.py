@@ -17,6 +17,8 @@ from passlib.context import CryptContext
 import datetime
 from fastapi.middleware.cors import CORSMiddleware
 import minio
+import io
+import re
 
 
 minio_client = minio.Minio(
@@ -274,17 +276,18 @@ async def update_user_me(user: UserEdit, db: Session = Depends(get_db), current_
 
 @app.post("/users/{id}/upload", tags=["Sync"])
 async def upload_photo(file: UploadFile, id: int):
-    bucket_name = str(id)
+    bucket_name = f"user{id}"
     found = minio_client.bucket_exists(bucket_name)
     if not found:
         minio_client.make_bucket(bucket_name)
     file_data = await file.read()
     file_name = file.filename
+    file_data_stream = io.BytesIO(file_data)
     minio_client.put_object(
-        bucket_name,
-        file_name,
-        data=file_data,
-        length=len(file_data),
-        content_type=file.content_type
+            bucket_name,
+            file_name,
+            data=file_data_stream,
+            length=len(file_data),
+            content_type=file.content_type
     )
     return JSONResponse(content={"filename": file_name}, status_code=200)
