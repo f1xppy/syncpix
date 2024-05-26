@@ -194,3 +194,8 @@ INFO:watchfiles.main:7 changes detected
 INFO:watchfiles.main:2 changes detected
 INFO:watchfiles.main:4 changes detected
 INFO:watchfiles.main:9 changes detected
+WARNING:passlib.handlers.bcrypt:(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/syncpix/Документы/GitHub/syncpix/syncpixServer/venv/lib/python3.9/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'

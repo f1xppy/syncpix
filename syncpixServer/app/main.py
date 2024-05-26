@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, UploadFile, File
+from fastapi.responses import JSONResponse, StreamingResponse
 from scapy.layers.l2 import Ether, ARP
 from scapy.sendrecv import srp
 from sqlalchemy import Column, Integer, String, create_engine, ARRAY
@@ -15,6 +16,16 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import datetime
 from fastapi.middleware.cors import CORSMiddleware
+import minio
+import io
+
+
+minio_client = minio.Minio(
+        '127.0.0.1:9000',
+        access_key="syncpix",
+        secret_key="syncpixpass",
+        secure=False
+    )
 
 
 logging.basicConfig(filename="log.txt",
@@ -47,7 +58,7 @@ class User(Base):
 class Device(Base):
     __tablename__ = 'devices'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    mac = Column(String)
+    name = Column(String)
     account_id = Column(Integer)
     ip = Column(String)
 
@@ -137,10 +148,10 @@ def get_db():
 
 
 @app.post("/devices", tags=["Devices"])
-async def add_device(account_id: int, mac: str, request: Request):
+async def add_device(account_id: int, name: str, request: Request):
     client_host = request.client.host
     db_request = Device(
-        mac=mac,
+        name=name,
         account_id=account_id,
         ip=client_host
     )
@@ -150,7 +161,7 @@ async def add_device(account_id: int, mac: str, request: Request):
 
 
 @app.put("/devices/{id}", tags=["Devices"])
-async def update_device_address(id:int, request: Request):
+async def update_device_address(id: int, request: Request):
     device_to_update = session.query(Device).filter_by(id=id).first()
     if device_to_update:
         device_to_update.ip = request.client.host
@@ -164,7 +175,7 @@ async def update_device_address(id:int, request: Request):
 async def get_device_list(account_id: int):
     devices = session.query(Device).filter_by(account_id=account_id).all()
     if devices:
-        device_list = [int(device_id.__dict__["id"]) for device_id in devices]
+        device_list = [{"id":int(device_id.__dict__["id"]), "name":device_id.__dict__["name"]} for device_id in devices]
         return device_list
     else:
         return {"message": "account not found"}
@@ -174,25 +185,8 @@ async def get_device_list(account_id: int):
 async def get_device_address(id: int):
     device = session.query(Device).filter_by(id=id).first()
     ip_address = device.__dict__["ip"]
-    mac_address = device.__dict__["mac"]
-    logging.info(ip_address + ' ' + mac_address)
-    def check_connection(ip, mac):
-        # Создаем ARP-запрос для проверки соединения с устройством
-        arp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip)
-        logging.info(arp_request)
-        # Отправляем запрос и получаем ответ
-        arp_response = srp(arp_request, timeout=3, verbose=False)[0]
-        logging.info(arp_response)
-        # Проверяем, получили ли мы ответ
-        if arp_response:
-            # Проверяем, есть ли в полученных ответах устройство с нужным MAC-адресом
-            for packet in arp_response:
-                logging.info(packet)
-                if packet[1].hwsrc == mac:
-                    return 1
-        return 0
 
-    return check_connection(ip_address, mac_address)
+    return ip_address
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -261,3 +255,60 @@ async def update_user_me(user: UserEdit, db: Session = Depends(get_db), current_
     db.refresh(current_user)
     return current_user
 
+
+@app.post("/users/{id}/upload", tags=["Sync"])
+async def upload_photo(file: UploadFile, id: int):
+    bucket_name = f"user{id}"
+    found = minio_client.bucket_exists(bucket_name)
+    if not found:
+        minio_client.make_bucket(bucket_name)
+    file_data = await file.read()
+    file_name = file.filename
+    file_data_stream = io.BytesIO(file_data)
+    minio_client.put_object(
+            bucket_name,
+            file_name,
+            data=file_data_stream,
+            length=len(file_data),
+            content_type=file.content_type
+    )
+    return JSONResponse(content={"filename": file_name}, status_code=200)
+
+
+@app.get("/users/{id}/download", tags=["Sync"])
+async def download_file(id: int, filename: str):
+    bucket_name = f"user{id}"
+
+    if not minio_client.bucket_exists(bucket_name):
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    response = minio_client.get_object(bucket_name, filename)
+    metadata = minio_client.stat_object(bucket_name, filename)
+
+    return StreamingResponse(response, media_type=metadata.content_type,
+                             headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+
+@app.delete("/users/{id}/delete", tags=["Sync"])
+async def delete_file(id: int, filename: str):
+    bucket_name = f"user{id}"
+
+    if not minio_client.bucket_exists(bucket_name):
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    minio_client.remove_object(bucket_name, filename)
+    
+    return {"detail": f"File '{filename}' deleted successfully."}
+
+
+@app.get("/users/{id}/list", tags=["Sync"])
+async def list_files(id: int):
+    bucket_name = f"user{id}"
+
+    if not minio_client.bucket_exists(bucket_name):
+        raise HTTPException(status_code=404, detail="Bucket not found")
+
+    objects = minio_client.list_objects(bucket_name)
+
+    file_list = [{"filename": obj.object_name, "size": obj.size} for obj in objects]
+    return {"files": file_list}
