@@ -361,7 +361,7 @@ function MainScreen({navigation}) {
       </GestureDetector>
       <View style={styles.bottomTab}>
         <TouchableOpacity style={styles.bottomBtn}>
-          <Ionicons name="beer" size={24}/>
+          <Ionicons name="logo-buffer" size={24}/>
           <Text>
             Добавить в синхронизацию
           </Text>
