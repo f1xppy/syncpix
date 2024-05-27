@@ -13,6 +13,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from '@react-navigation/native';
 import SCREENS from "..";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get("window");
 
@@ -20,25 +22,25 @@ function SettingsScreen() {
   const [selectedSetting, setSelectedSetting] = useState(null);
   const [isLoging, setLoging] = useState(false);
   const [isRegistering, setRegistering] = useState(false);
-  const [login, setLogin] = useState(null);
-  const [email, setEmail] = useState(null);
-  const [passwd, setPasswd] = useState(null);
-  const [confPasswd, setConfPasswd] = useState(null);
-  const account_id = null;
-  const token = null;
-  const server_address = 'http://172.18.0.39:8000/';
+  const [login, setLogin] = useState('');
+  const [email, setEmail] = useState('');
+  const [passwd, setPasswd] = useState('');
+  const [confPasswd, setConfPasswd] = useState('');
+  const [account_id, setAccount_id] = useState(null);
+  const server_address = 'http://192.168.0.106:8000/';
   navigation = useNavigation();
 
   const register = async() => {
 
-    const apiUrl=server_address+'register';
-
-    await axios.post(apiUrl, {
-      "username": {login},
-      "email": {email},
-      "password": {passwd},
+    let apiUrl=server_address+'register';
+    const reg_data={
+      "username": login,
+      "email": email,
+      "password": passwd,
       "full_name": "vaflya"
-    });
+    }
+
+    await axios.post(apiUrl, reg_data);
 
     setEmail(null);
     setPasswd(null);
@@ -48,21 +50,29 @@ function SettingsScreen() {
   };
 
   const logIn = async() => {
-    const apiUrl=server_address+'token';
-    const data = 'grant_type=&username='+login+'&password='+passwd+'scope=&client_id=&client_secret=';
+    let apiUrl=server_address+'token';
+    //const data = 'grant_type=&username='+login+'&password='+passwd+'scope=&client_id=&client_secret=';
 
-    response = axios.post(apiUrl, data);
-    token = response.data;
 
-    apiUrl = server_address+'users/me';
-    const header = 'Authorization: Bearer '+token;
+    let data = new URLSearchParams();
+    data.append('username', login);
+    data.append('password', passwd);
 
-    response = axios.get(apiUrl, {headers: {header}});
-    data = response.data;
-    account_id = data["id"];
-
-    console.log(account_id);
     
+    //data.append('grant_type', passwd);
+
+    response = await axios.post(apiUrl, data, {headers: 'Content-type: application/x-www-form-urlencoded'});
+    let token = response.data['access_token'];
+    let apiUrl2 = server_address+'users/me?token='+token;
+
+
+    response = await axios.get(apiUrl2);
+    data = response.data;
+    setAccount_id(data['id']);
+
+    console.log(typeof(data['id']))
+    await AsyncStorage.setItem('@account_id', data['id'].toString());
+
     setLoging(false);
   };
   function SettingsMain() {
@@ -181,11 +191,11 @@ function SettingsScreen() {
           </TouchableOpacity>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Login</Text>
-              <TextInput style={styles.modalInput}></TextInput>
+              <TextInput style={styles.modalInput} onEndEditing={(value) => setLogin(value.nativeEvent.text)} placeholder="...">{login}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Password</Text>
-              <TextInput style={styles.modalInput}></TextInput>
+              <TextInput style={styles.modalInput} onEndEditing={(value) => setPasswd(value.nativeEvent.text)} secureTextEntry={true} placeholder="...">{passwd}</TextInput>
             </View>
             <TouchableOpacity onPress={() => logIn()}>
             <View style={[styles.applyBtn, styles.modalElem]}>
@@ -211,19 +221,19 @@ function SettingsScreen() {
           </TouchableOpacity>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Login</Text>
-              <TextInput style={styles.modalInput}>{login}</TextInput>
+              <TextInput style={styles.modalInput} onEndEditing={(value) => setLogin(value.nativeEvent.text)} placeholder="...">{login}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>E-mail</Text>
-              <TextInput style={styles.modalInput}>{email}</TextInput>
+              <TextInput style={styles.modalInput} onEndEditing={(value) => setEmail(value.nativeEvent.text)} keyboardType="email-address" placeholder="example@sut.ru">{email}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Password</Text>
-              <TextInput style={styles.modalInput}>{passwd}</TextInput>
+              <TextInput style={styles.modalInput} onEndEditing={(value) => setPasswd(value.nativeEvent.text)} secureTextEntry={true} placeholder="...">{passwd}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Confirm Password</Text>
-              <TextInput style={styles.modalInput}>{confPasswd}</TextInput>
+              <TextInput style={styles.modalInput} onEndEditing={(value) => setConfPasswd(value.nativeEvent.text)} secureTextEntry={true} placeholder="...">{confPasswd}</TextInput>
             </View>
             <TouchableOpacity onPress={() => register()}>
             <View style={[styles.applyBtn, styles.modalElem]}>

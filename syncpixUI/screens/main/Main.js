@@ -35,13 +35,13 @@ import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const { width, height } = Dimensions.get("window");
-const server_address = 'http://172.18.0.39:8000';
+const server_address = 'http://192.168.0.106:8000';
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
-const account_id = 1;
 const clamp = (value, min, max) => {
   'worklet';
   return Math.min(Math.max(value, min), max);
@@ -78,7 +78,18 @@ function MainScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [after, setAfter] = useState(null);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [account_id, setAccount_id] = useState(null)
 
+  useEffect(() => {
+    // Получение сохраненного значения при загрузке приложения
+    const getStoredValue = async () => {
+        const value = await AsyncStorage.getItem('@account_id');
+        if (value !== null) {
+          setAccount_id(value);
+        }
+    };
+    getStoredValue();
+  }, []);
 
   const openPhoto = (photo) => {
     isVisible.value = true;
@@ -210,6 +221,10 @@ function MainScreen({navigation}) {
     }
   };
   const getChangesSize = async() => {
+    const value = await AsyncStorage.getItem('@account_id');
+        if (value !== null) {
+          setAccount_id(value);
+        }
     apiUrl=server_address + '/users/'+account_id+'/syncsize';
     await axios.get(apiUrl).then(function(response) {
       const data = response.data;
@@ -218,6 +233,10 @@ function MainScreen({navigation}) {
     setSyncModalVisible(true);
   };
   const getChanges = async() => {
+    const value = await AsyncStorage.getItem('@account_id');
+        if (value !== null) {
+          setAccount_id(value);
+        }
     apiUrl = server_address + '/users/' + account_id + '/list';
     const data = await axios.get(apiUrl);
 
@@ -256,6 +275,11 @@ function MainScreen({navigation}) {
   }
   };
   const toggleSync = async (photo) => {
+    const value = await AsyncStorage.getItem('@account_id');
+    
+        if (value !== null) {
+          setAccount_id(value);
+        }
       const formData = new FormData();
     formData.append('file', {
       uri: photo['uri'],
