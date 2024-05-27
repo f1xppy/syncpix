@@ -18,6 +18,9 @@ const { width, height } = Dimensions.get("window");
 
 function SettingsScreen() {
   const [selectedSetting, setSelectedSetting] = useState(null);
+  const [isLoging, setLoging] = useState(false);
+  const [isRegistering, setRegistering] = useState(false);
+  
   navigation = useNavigation();
 
   function SettingsMain() {
@@ -85,7 +88,6 @@ function SettingsScreen() {
   }
 
   function SettingsProfile() {
-  
     return (
       <View style={{ flex: 1 }}>
         <View style={styles.header}>
@@ -99,32 +101,96 @@ function SettingsScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.pageCont}>
-        <View style={styles.pfpCont}>
+          <View style={styles.pfpCont}>
             <Image
               source={require("../../assets/photo4.jpg")}
               style={styles.pfp}
             />
             <TouchableOpacity style={styles.changePfp}>
-              <Ionicons name="camera" size={30}/>
+              <Ionicons name="camera" size={30} />
             </TouchableOpacity>
+          </View>
+          <Text style={[styles.text, styles.userText]}>User Name</Text>
+          <TouchableOpacity style={styles.settingBtn} onPress={() => setLoging(true)}>
+            <Text style={[styles.text, styles.btnText]}>Войти</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.settingBtn} onPress={() => setRegistering(true)}>
+            <Text style={[styles.text, styles.btnText]}>
+              Зарегистрироваться
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.settingBtn}>
+            <Text style={[styles.text, styles.btnText]}>Выйти</Text>
+          </TouchableOpacity>
         </View>
-        <Text style={[styles.text, styles.userText]}>User Name</Text>
-        <TouchableOpacity
-          style={styles.settingBtn}
+
+        <Modal
+          visible={isLoging === true}
+          animationType="fade"
+          transparent={true}
         >
-          <Text style={[styles.text, styles.btnText]}>Войти</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.settingBtn}
-        >
-          <Text style={[styles.text, styles.btnText]}>Зарегистрироваться</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.settingBtn}
-        >
-          <Text style={[styles.text, styles.btnText]}>Выйти</Text>
-        </TouchableOpacity>
+          <View style={styles.modalBackground}>
+          <View style={styles.modalCont}>
+          <TouchableOpacity
+            style={styles.modalBackBtn}
+            onPress={() => setLoging(false)}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+            <View style={styles.modalElem}>
+              <Text style={[styles.text, styles.modalTxt]}>Login</Text>
+              <TextInput style={styles.modalInput}></TextInput>
+            </View>
+            <View style={styles.modalElem}>
+              <Text style={[styles.text, styles.modalTxt]}>Password</Text>
+              <TextInput style={styles.modalInput}></TextInput>
+            </View>
+            <TouchableOpacity onPress={() => setLoging(false)}>
+            <View style={[styles.applyBtn, styles.modalElem]}>
+              <Text style={[styles.text, styles.applyTxt]}>Войти</Text>
+            </View>
+          </TouchableOpacity>
         </View>
+        </View>
+        </Modal>
+
+        <Modal
+          visible={isRegistering === true}
+          animationType="fade"
+          transparent={true}
+        >
+          <View style={styles.modalBackground}>
+          <View style={styles.modalRegCont}>
+          <TouchableOpacity
+            style={[styles.backBtn, {left: -width/3, top:-40}]}
+            onPress={() => setRegistering(false)}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+            <View style={styles.modalElem}>
+              <Text style={[styles.text, styles.modalTxt]}>Login</Text>
+              <TextInput style={styles.modalInput}></TextInput>
+            </View>
+            <View style={styles.modalElem}>
+              <Text style={[styles.text, styles.modalTxt]}>E-mail</Text>
+              <TextInput style={styles.modalInput}></TextInput>
+            </View>
+            <View style={styles.modalElem}>
+              <Text style={[styles.text, styles.modalTxt]}>Password</Text>
+              <TextInput style={styles.modalInput}></TextInput>
+            </View>
+            <View style={styles.modalElem}>
+              <Text style={[styles.text, styles.modalTxt]}>Confirm Password</Text>
+              <TextInput style={styles.modalInput}></TextInput>
+            </View>
+            <TouchableOpacity onPress={() => setRegistering(false)}>
+            <View style={[styles.applyBtn, styles.modalElem]}>
+              <Text style={[styles.text, styles.applyTxt]}>Зарегистрироваться</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        </View>
+        </Modal>
       </View>
     );
   }
@@ -316,6 +382,69 @@ const styles = StyleSheet.create({
     alignItems: "center",
     //flex:1,
   },
+  modalBackground:{
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: "center",
+    justifyContent: 'center',
+  },
+  modalCont: {
+    //flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#333333',
+    borderRadius: 30,
+    width: width - width/10,    
+    height: height/2,
+  },
+  modalRegCont:{
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#333333',
+    borderRadius: 30,
+    width: width - width/10,    
+    height: height/1.5,
+  },
+  modalTxt:{
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginBottom: 5,
+  },
+  modalInput: {
+    borderRadius: 10,
+    backgroundColor: "#E7E7E7",
+    width: 286,
+    height: 35,
+    paddingLeft: 8,
+  },
+  modalElem:{
+    marginVertical: 5,
+  },
+  applyBtn:{
+    borderRadius: 10,
+    backgroundColor: "#8CE8E5",
+    width: width - 2*(width/5), 
+    height:40,
+    width: 286,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+  },
+  applyTxt:{
+    color:"#333333",
+    fontSize: 18,
+  },
+  modalBackBtn:{
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#8CE8E5",
+    borderRadius: 10,
+    height: 45,
+    width: 45,
+    marginTop: 20,
+    left: -width/3,
+    top: -40,
+  },
   pfpCont:{
     alignItems: 'center',
     justifyContent: 'center',
@@ -370,6 +499,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingRight: 2,
   },
+  
   backIcon: {
     color: "#333333",
   },
