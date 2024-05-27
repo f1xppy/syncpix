@@ -284,7 +284,6 @@ async def download_file(id: int, filename: str):
 
     response = minio_client.get_object(bucket_name, filename)
     metadata = minio_client.stat_object(bucket_name, filename)
-
     return StreamingResponse(response, media_type=metadata.content_type,
                              headers={"Content-Disposition": f"attachment; filename={filename}"})
 
@@ -292,7 +291,6 @@ async def download_file(id: int, filename: str):
 @app.delete("/users/{id}/delete", tags=["Sync"])
 async def delete_file(id: int, filename: str):
     bucket_name = f"user{id}"
-
     if not minio_client.bucket_exists(bucket_name):
         raise HTTPException(status_code=404, detail="Bucket not found")
 
