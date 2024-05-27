@@ -196,23 +196,38 @@ function MainScreen({navigation}) {
     setSyncModalVisible(true);
   };
   const getChanges = async() => {
-    apiUrl=server_address + '/users/'+account_id+'/list';
+    apiUrl = server_address + '/users/' + account_id + '/list';
     const data = await axios.get(apiUrl);
+
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Sorry, we need media library permissions to make this work!');
+      return;
+    }
+
     for (let i = 0; i < data.data.length; i++) {
-      apiUrl=server_address+'/users/'+account_id+'/download?filename='+data.data[i];
-      const response = await axios.get(apiUrl);
+      apiUrl = server_address + '/users/' + account_id + '/download?filename=' + data.data[i];
+      const filename = data.data[i];
+      const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
       const uri = response.data;
       const fileUri = FileSystem.documentDirectory + filename;
-      await FileSystem.writeAsStringAsync(fileUri, uri, {
+      
+      const base64Data = btoa(
+        new Uint8Array(response.data)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      // Записываем файл в файловую систему
+      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
         encoding: FileSystem.EncodingType.Base64
       });
-  
-      // Optionally, you can move the file to the Media Library
-      await FileSystem.moveAsync({
-        from: fileUri,
-        to: `${FileSystem.documentDirectory}${filename}`
-      });
-      alert('File downloaded successfully!');
+
+      // Сохраняем файл в медиа библиотеку
+      const asset = await MediaLibrary.createAssetAsync(fileUri);
+      await MediaLibrary.createAlbumAsync('Sync', asset, false);
+
+
+
 
       apiUrl=server_address+'/users/'+account_id+'/delete?filename='+data.data[i];
       await axios.delete(apiUrl);
