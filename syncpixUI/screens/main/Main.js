@@ -11,6 +11,7 @@ import {
   FlatList,
   StatusBar,
   Alert,
+  PermissionsAndroid,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -34,6 +35,8 @@ import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
+import * as Permissions from 'expo-permissions';
+
 
 const { width, height } = Dimensions.get("window");
 const server_address = 'http://192.168.0.106:8000'
@@ -194,13 +197,24 @@ function MainScreen({navigation}) {
   };
   const getChanges = async() => {
     apiUrl=server_address + '/users/'+account_id+'/list';
-    await axios.get(apiUrl).then(function(response) {
-      const data = response.data;
-    });
-    for (let i = 0; i < data.length; i++) {
-      apiUrl=server_address+'/users/'+account_id+'/download?filename='+data[i];
-      await axios.get(apiUrl);
-      apiUrl=server_address+'/users/'+account_id+'/delete?filename='+data[i];
+    const data = await axios.get(apiUrl);
+    for (let i = 0; i < data.data.length; i++) {
+      apiUrl=server_address+'/users/'+account_id+'/download?filename='+data.data[i];
+      const response = await axios.get(apiUrl);
+      const uri = response.data;
+      const fileUri = FileSystem.documentDirectory + filename;
+      await FileSystem.writeAsStringAsync(fileUri, uri, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+  
+      // Optionally, you can move the file to the Media Library
+      await FileSystem.moveAsync({
+        from: fileUri,
+        to: `${FileSystem.documentDirectory}${filename}`
+      });
+      alert('File downloaded successfully!');
+
+      apiUrl=server_address+'/users/'+account_id+'/delete?filename='+data.data[i];
       await axios.delete(apiUrl);
   }
   };
