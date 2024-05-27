@@ -33,11 +33,14 @@ function SettingsScreen() {
           >
             <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
           </TouchableOpacity>
+          <TouchableOpacity onPress={()=> setSelectedSetting("Profile")}>
           <Image
             style={styles.ava}
             source={require("../../assets/UI_Elements/unregistered.png")}
             />
+          </TouchableOpacity>
         </View>
+        <View style={styles.pageCont}>
         <TouchableOpacity
           style={styles.settingBtn}
           onPress={() => setSelectedSetting("Внешний вид")}
@@ -76,6 +79,52 @@ function SettingsScreen() {
         >
           <Text style={[styles.text, styles.btnText]}>TEST</Text>
         </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  function SettingsProfile() {
+  
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              setSelectedSetting(null);
+            }}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.pageCont}>
+        <View style={styles.pfpCont}>
+            <Image
+              source={require("../../assets/photo4.jpg")}
+              style={styles.pfp}
+            />
+            <TouchableOpacity style={styles.changePfp}>
+              <Ionicons name="camera" size={30}/>
+            </TouchableOpacity>
+        </View>
+        <Text style={[styles.text, styles.userText]}>User Name</Text>
+        <TouchableOpacity
+          style={styles.settingBtn}
+        >
+          <Text style={[styles.text, styles.btnText]}>Войти</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingBtn}
+        >
+          <Text style={[styles.text, styles.btnText]}>Зарегистрироваться</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingBtn}
+        >
+          <Text style={[styles.text, styles.btnText]}>Выйти</Text>
+        </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -94,36 +143,113 @@ function SettingsScreen() {
           </TouchableOpacity>
           <Text style={styles.headerText}>Внешний Вид</Text>
         </View>
+        <View style={styles.pageCont}>
         <TouchableOpacity
           style={styles.settingBtn}
-          onPress={() => setSelectedSetting("Внешний вид")}
         >
-          <Text style={[styles.text, styles.btnText]}>Внешний вид</Text>
+          <Text style={[styles.text, styles.btnText]}>Кнопка</Text>
         </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  function SettingsEditor() {
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              setSelectedSetting(null)
+            }}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Редактор</Text>
+        </View>
+        <View style={styles.pageCont}>
         <TouchableOpacity
           style={styles.settingBtn}
-          onPress={() => setSelectedSetting("Редактор")}
         >
-          <Text style={[styles.text, styles.btnText]}>Редактор</Text>
+          <Text style={[styles.text, styles.btnText]}>Кнопка</Text>
         </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  function SettingsSync() {
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              setSelectedSetting(null)
+            }}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Синхронизация</Text>
+        </View>
+        <View style={styles.pageCont}>
         <TouchableOpacity
           style={styles.settingBtn}
-          onPress={() => setSelectedSetting("Синхронизация")}
         >
-          <Text style={[styles.text, styles.btnText]}>Синхронизация</Text>
+          <Text style={[styles.text, styles.btnText]}>Кнопка</Text>
         </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  function SettingsHelp() {
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              setSelectedSetting(null)
+            }}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Помощь</Text>
+        </View>
+        <View style={styles.pageCont}>
         <TouchableOpacity
           style={styles.settingBtn}
-          onPress={() => setSelectedSetting("Помощь")}
         >
-          <Text style={[styles.text, styles.btnText]}>Помощь</Text>
+          <Text style={[styles.text, styles.btnText]}>Кнопка</Text>
         </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  function SettingsAbout() {
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              setSelectedSetting(null)
+            }}
+          >
+            <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>О приложении</Text>
+        </View>
+        <View style={styles.pageCont}>
         <TouchableOpacity
           style={styles.settingBtn}
-          onPress={() => setSelectedSetting("О приложении")}
         >
-          <Text style={[styles.text, styles.btnText]}>О приложении</Text>
+          <Text style={[styles.text, styles.btnText]}>Кнопка</Text>
         </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -135,9 +261,25 @@ function SettingsScreen() {
             {SettingsMain()}
         </View>
       )}
+      {selectedSetting === "Profile" && (
+        <SettingsProfile/>
+      )}
       {selectedSetting === "Внешний вид" && (
         <SettingsLook/>
       )}
+      {selectedSetting === "Редактор" && (
+        <SettingsEditor/>
+      )}
+      {selectedSetting === "Синхронизация" && (
+        <SettingsSync/>
+      )}
+      {selectedSetting === "Помощь" && (
+        <SettingsHelp/>
+      )}
+      {selectedSetting === "О приложении" && (
+        <SettingsAbout/>
+      )}
+        
     </View>
   );
 };
@@ -170,14 +312,51 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     marginTop: 20,
   },
+  pageCont:{
+    alignItems: "center",
+    //flex:1,
+  },
+  pfpCont:{
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: "center",
+    //flex: 1,
+    marginBottom: 40,
+    width: width/2,
+    height: width/2,
+    borderRadius: 100,
+    
+  },
+  pfp:{
+    borderRadius: 100,
+    width: width/2,
+    height: width/2,
+    backgroundColor: "#FFFFFF",
+    //resizeMode: 'contain',
+  },
+  changePfp:{
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+    backgroundColor: "#8CE8E5",
+    position: "absolute",
+    top: width/2.6,
+    left: width/3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userText:{
+    fontSize:24,
+    color: "#FFFFFF",
+    marginBottom: 40,
+  },
   settingBtn: {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#8CE8E5",
     borderRadius: 10,
-    marginLeft: 20,
-    marginRight: 20,
     marginBottom: 15,
+    width: width-40,
     height: 45,
   },
   backBtn: {

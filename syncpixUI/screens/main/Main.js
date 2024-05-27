@@ -35,11 +35,11 @@ import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
-import * as Permissions from 'expo-permissions';
+//import * as Permissions from 'expo-permissions';
 
 
 const { width, height } = Dimensions.get("window");
-const server_address = 'http://192.168.0.106:8000'
+const server_address = 'http://172.18.0.39:8000';
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
 const account_id = 1;
@@ -416,8 +416,20 @@ function MainScreen({navigation}) {
       <View style={styles.bottomTab}>
         <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
           <Ionicons name="beer" size={24}/>
-          <Text>
-            Добавить в синхронизацию
+          <Text style={[styles.text, styles.bottomBtnText]}>
+            Синхронизировать
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
+          <Ionicons name="albums" size={24}/>
+          <Text style={[styles.text, styles.bottomBtnText]}>
+            Добавить в альбом
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
+          <Ionicons name="trash" size={24}/>
+          <Text style={[styles.text, styles.bottomBtnText]}>
+            Удалить
           </Text>
         </TouchableOpacity>
       </View>
@@ -507,14 +519,14 @@ function MainScreen({navigation}) {
       <TouchableOpacity style={styles.takePhotoContainer} onPress={()=>takeImageHandler()}>
         <View style={styles.takePhotoBtn}>
           {selectedTab === "Фото" && (
-            <Ionicons name="camera" size={photoWidth / 3} color="#000000" />
+            <Ionicons name="aperture" size={photoWidth / 3} color="#000000" />
           )}
           {selectedTab === "Альбомы" && (
             <Ionicons name="add-sharp" size={photoWidth / 3} color="#000000" />
           )}
         </View>
       </TouchableOpacity>
-      <Modal visible={selectedPhoto !== null} animationType="fade">
+      <Modal visible={selectedPhoto !== null} animationType="none">
         <FullPhotoHOC />
       </Modal>
       <Modal
@@ -596,9 +608,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     position: 'absolute',
-    height: 50,
+    height: 100,
     width: width,
-    top: height - 50,
+    top: height - 100,
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
   },
@@ -621,6 +633,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#8CE8E5",
     alignItems: "center",
     justifyContent: "center",
+    height: 70,
+    width: 80,
+  },
+  bottomBtnText: {
+    fontSize: 12,
+    textAlign: 'center',
   },
   title: {
     fontSize: 20,

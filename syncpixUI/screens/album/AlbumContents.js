@@ -233,7 +233,7 @@ const AlbumContents = ({ route}) => {
 
   const loadPhotos = async () => {
     if (status.status !== 'granted') {
-      await requestPermission();
+      await MediaLibrary.requestPermissionsAsync();
     }
     if (loading || !hasNextPage) return;
     setLoading(true);
