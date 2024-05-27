@@ -35,7 +35,6 @@ import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
-//import * as Permissions from 'expo-permissions';
 
 
 const { width, height } = Dimensions.get("window");
@@ -136,6 +135,29 @@ function MainScreen({navigation}) {
     setAfter(media.endCursor);
     setHasNextPage(media.hasNextPage);
     setLoading(false);
+  };
+
+  const deletePhoto = async () => {
+    if (selectedPhoto) {
+      try {
+        console.log('Attempting to delete photo with ID:', selectedPhoto); // Debugging line
+        const result = await MediaLibrary.deleteAssetsAsync([selectedPhoto]);
+        console.log('Delete result:', result); // Debugging line
+
+        if (result.length > 0) { // Checking if the result array is not empty
+          setPhotos(photos.filter(photo => photo.id !== selectedPhoto));
+          setSelectedPhoto(null);
+          Alert.alert("Success", "Photo deleted successfully");
+        } else {
+          throw new Error('Failed to delete photo');
+        }
+      } catch (error) {
+        console.error('Error deleting photo:', error);
+        Alert.alert("Error", "Failed to delete photo");
+      }
+    } else {
+      Alert.alert("No photo selected", "Please select a photo to delete");
+    }
   };
 
   const scale = useSharedValue(1);
@@ -441,7 +463,7 @@ function MainScreen({navigation}) {
             Добавить в альбом
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
+        <TouchableOpacity onPress={() => deletePhoto()} style={styles.bottomBtn}>
           <Ionicons name="trash" size={24}/>
           <Text style={[styles.text, styles.bottomBtnText]}>
             Удалить
@@ -689,7 +711,7 @@ const styles = StyleSheet.create({
   photoContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 10,
+    paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
