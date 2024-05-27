@@ -20,9 +20,51 @@ function SettingsScreen() {
   const [selectedSetting, setSelectedSetting] = useState(null);
   const [isLoging, setLoging] = useState(false);
   const [isRegistering, setRegistering] = useState(false);
-  
+  const [login, setLogin] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [passwd, setPasswd] = useState(null);
+  const [confPasswd, setConfPasswd] = useState(null);
+  const account_id = null;
+  const token = null;
+  const server_address = 'http://172.18.0.39:8000/';
   navigation = useNavigation();
 
+  const register = async() => {
+
+    const apiUrl=server_address+'register';
+
+    await axios.post(apiUrl, {
+      "username": {login},
+      "email": {email},
+      "password": {passwd},
+      "full_name": "vaflya"
+    });
+
+    setEmail(null);
+    setPasswd(null);
+    setConfPasswd(null);
+
+    setRegistering(false);
+  };
+
+  const logIn = async() => {
+    const apiUrl=server_address+'token';
+    const data = 'grant_type=&username='+login+'&password='+passwd+'scope=&client_id=&client_secret=';
+
+    response = axios.post(apiUrl, data);
+    token = response.data;
+
+    apiUrl = server_address+'users/me';
+    const header = 'Authorization: Bearer '+token;
+
+    response = axios.get(apiUrl, {headers: {header}});
+    data = response.data;
+    account_id = data["id"];
+
+    console.log(account_id);
+    
+    setLoging(false);
+  };
   function SettingsMain() {
   
     return (
@@ -145,7 +187,7 @@ function SettingsScreen() {
               <Text style={[styles.text, styles.modalTxt]}>Password</Text>
               <TextInput style={styles.modalInput}></TextInput>
             </View>
-            <TouchableOpacity onPress={() => setLoging(false)}>
+            <TouchableOpacity onPress={() => logIn()}>
             <View style={[styles.applyBtn, styles.modalElem]}>
               <Text style={[styles.text, styles.applyTxt]}>Войти</Text>
             </View>
@@ -169,21 +211,21 @@ function SettingsScreen() {
           </TouchableOpacity>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Login</Text>
-              <TextInput style={styles.modalInput}></TextInput>
+              <TextInput style={styles.modalInput}>{login}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>E-mail</Text>
-              <TextInput style={styles.modalInput}></TextInput>
+              <TextInput style={styles.modalInput}>{email}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Password</Text>
-              <TextInput style={styles.modalInput}></TextInput>
+              <TextInput style={styles.modalInput}>{passwd}</TextInput>
             </View>
             <View style={styles.modalElem}>
               <Text style={[styles.text, styles.modalTxt]}>Confirm Password</Text>
-              <TextInput style={styles.modalInput}></TextInput>
+              <TextInput style={styles.modalInput}>{confPasswd}</TextInput>
             </View>
-            <TouchableOpacity onPress={() => setRegistering(false)}>
+            <TouchableOpacity onPress={() => register()}>
             <View style={[styles.applyBtn, styles.modalElem]}>
               <Text style={[styles.text, styles.applyTxt]}>Зарегистрироваться</Text>
             </View>
