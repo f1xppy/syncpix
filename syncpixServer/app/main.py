@@ -175,7 +175,7 @@ async def update_device_address(id: int, request: Request):
 async def get_device_list(account_id: int):
     devices = session.query(Device).filter_by(account_id=account_id).all()
     if devices:
-        device_list = [{"id":int(device_id.__dict__["id"]), "name":device_id.__dict__["name"]} for device_id in devices]
+        device_list = [{"id": int(device_id.__dict__["id"]), "name":device_id.__dict__["name"]} for device_id in devices]
         return device_list
     else:
         return {"message": "account not found"}
@@ -244,8 +244,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token}
 
 @app.get("/users/me", tags=["Users"])
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
+async def read_users_me(token: str):
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    username: str = payload.get("sub")
+    user_data = session.query(User).filter_by(username=username).first()
+    return user_data
 
 @app.put("/users/me", tags=["Users"])
 async def update_user_me(user: UserEdit, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):

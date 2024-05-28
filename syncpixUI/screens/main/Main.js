@@ -1,4 +1,4 @@
-import React,{ useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -35,13 +35,13 @@ import { useNavigation } from '@react-navigation/native';
 import SCREENS from '..';
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const { width, height } = Dimensions.get("window");
-const server_address = 'http://172.18.0.39:8000';
+const server_address = 'http://192.168.0.106:8000';
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
-const account_id = 1;
 const clamp = (value, min, max) => {
   'worklet';
   return Math.min(Math.max(value, min), max);
@@ -66,7 +66,7 @@ const RenderPhotos = ({ photos, loadMorePhotos, onPress }) => (
   />
 );
 
-function MainScreen({navigation}) {
+function MainScreen({ navigation }) {
   const [changesSize, setChangesSize] = useState(0);
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -78,7 +78,18 @@ function MainScreen({navigation}) {
   const [loading, setLoading] = useState(false);
   const [after, setAfter] = useState(null);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [account_id, setAccount_id] = useState(null)
 
+  useEffect(() => {
+    // Получение сохраненного значения при загрузке приложения
+    const getStoredValue = async () => {
+      const value = await AsyncStorage.getItem('@account_id');
+      if (value !== null) {
+        setAccount_id(value);
+      }
+    };
+    getStoredValue();
+  }, []);
 
   const openPhoto = (photo) => {
     isVisible.value = true;
@@ -209,65 +220,82 @@ function MainScreen({navigation}) {
       });
     }
   };
-  const getChangesSize = async() => {
-    apiUrl=server_address + '/users/'+account_id+'/syncsize';
-    await axios.get(apiUrl).then(function(response) {
-      const data = response.data;
-      setChangesSize(data);
-    });
-    setSyncModalVisible(true);
-  };
-  const getChanges = async() => {
-    apiUrl = server_address + '/users/' + account_id + '/list';
-    const data = await axios.get(apiUrl);
-
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Sorry, we need media library permissions to make this work!');
-      return;
+  const getChangesSize = async () => {
+    const value = await AsyncStorage.getItem('@account_id');
+    setAccount_id(value);
+    if (value !== null) {
+      apiUrl = server_address + '/users/' + account_id + '/syncsize';
+      await axios.get(apiUrl).then(function (response) {
+        const data = response.data;
+        setChangesSize(data);
+      });
+    } 
+    else{
+      setChangesSize(0);
     }
 
-    for (let i = 0; i < data.data.length; i++) {
-      apiUrl = server_address + '/users/' + account_id + '/download?filename=' + data.data[i];
-      const filename = data.data[i];
-      const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
-      const uri = response.data;
-      const fileUri = FileSystem.documentDirectory + filename;
-      
-      const base64Data = btoa(
-        new Uint8Array(response.data)
-          .reduce((data, byte) => data + String.fromCharCode(byte), '')
-      );
+    
+    setSyncModalVisible(true);
+  };
+  const getChanges = async () => {
+    const value = await AsyncStorage.getItem('@account_id');
+    setAccount_id(value);
+    if (value !== null) {
+      apiUrl = server_address + '/users/' + account_id + '/list';
+      const data = await axios.get(apiUrl);
 
-      // Записываем файл в файловую систему
-      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-        encoding: FileSystem.EncodingType.Base64
-      });
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need media library permissions to make this work!');
+        return;
+      }
 
-      // Сохраняем файл в медиа библиотеку
-      const asset = await MediaLibrary.createAssetAsync(fileUri);
-      await MediaLibrary.createAlbumAsync('Sync', asset, false);
+      for (let i = 0; i < data.data.length; i++) {
+        apiUrl = server_address + '/users/' + account_id + '/download?filename=' + data.data[i];
+        const filename = data.data[i];
+        const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
+        const uri = response.data;
+        const fileUri = FileSystem.documentDirectory + filename;
+
+        const base64Data = btoa(
+          new Uint8Array(response.data)
+            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+
+        // Записываем файл в файловую систему
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+          encoding: FileSystem.EncodingType.Base64
+        });
+
+        // Сохраняем файл в медиа библиотеку
+        const asset = await MediaLibrary.createAssetAsync(fileUri);
+        await MediaLibrary.createAlbumAsync('Sync', asset, false);
 
 
 
 
-      apiUrl=server_address+'/users/'+account_id+'/delete?filename='+data.data[i];
-      await axios.delete(apiUrl);
-  }
+        apiUrl = server_address + '/users/' + account_id + '/delete?filename=' + data.data[i];
+        await axios.delete(apiUrl);
+      }
+    }
   };
   const toggleSync = async (photo) => {
+    const value = await AsyncStorage.getItem('@account_id');
+    setAccount_id(value);
+    if (value !== null) {
       const formData = new FormData();
-    formData.append('file', {
-      uri: photo['uri'],
-      name: photo['filename'],
-      type: 'image/jpeg'
-    });
-      apiUrl=server_address + '/users/'+account_id+'/upload';
+      formData.append('file', {
+        uri: photo['uri'],
+        name: photo['filename'],
+        type: 'image/jpeg'
+      });
+      apiUrl = server_address + '/users/' + account_id + '/upload';
       await axios.post(apiUrl, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
-  });
+      });
+    }
   };
   const pinch = Gesture.Pinch()
     .onStart(() => {
@@ -354,7 +382,7 @@ function MainScreen({navigation}) {
 
 
 
-    const doubleTap = Gesture.Tap()
+  const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
     .onEnd((event) => {
       const tapX = event.absoluteX - width / 2;
@@ -378,19 +406,19 @@ function MainScreen({navigation}) {
         );
       }
     });
-    
-    const animatedPhotoStyles = useAnimatedStyle(() => ({
-      opacity: isVisible.value ? 1 : 0,
-      transform: [
-        { translateX: translationX.value },
-        { translateY: translationY.value },
-        { scale: scale.value },
-      ],
-    }));
-    
-    const composedFullPhoto = Gesture.Simultaneous(pan, pinch, doubleTap);
 
-    
+  const animatedPhotoStyles = useAnimatedStyle(() => ({
+    opacity: isVisible.value ? 1 : 0,
+    transform: [
+      { translateX: translationX.value },
+      { translateY: translationY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  const composedFullPhoto = Gesture.Simultaneous(pan, pinch, doubleTap);
+
+
 
   const menuSwipeHandle = (start, end) => {
     /*const childXValue = useRef(new Animated.Value((start + end) / 2)).current
@@ -415,7 +443,7 @@ function MainScreen({navigation}) {
       else if (start - end < -50) setSelectedTab("Альбомы");
     }
   };
-  //StatusBar.setHidden(true);
+  StatusBar.setHidden(true);
 
   const SyncHOC = gestureHandlerRootHOC(() => (
     <Animated.View style={styles.modalBackground}>
@@ -427,7 +455,7 @@ function MainScreen({navigation}) {
         </TouchableOpacity>
         <TouchableOpacity>
           <Animated.View style={styles.syncBtn}>
-            <Text onPress={()=> getChanges()} style={[styles.text, styles.syncText]}>Скачать {changesSize}Mb</Text>
+            <Text onPress={() => getChanges()} style={[styles.text, styles.syncText]}>Скачать {changesSize}Mb</Text>
           </Animated.View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setSyncModalVisible(!syncModalVisible)}>
@@ -438,7 +466,7 @@ function MainScreen({navigation}) {
       </Animated.View>
     </Animated.View>
   ));
-  
+
   const FullPhotoHOC = gestureHandlerRootHOC(() => (
     <Animated.View style={styles.modalContainer}>
       <TouchableOpacity onPress={closePhoto} style={styles.backButton}>
@@ -452,19 +480,19 @@ function MainScreen({navigation}) {
       </GestureDetector>
       <View style={styles.bottomTab}>
         <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
-          <Ionicons name="beer" size={24}/>
+          <Ionicons name="beer" size={24} />
           <Text style={[styles.text, styles.bottomBtnText]}>
             Синхронизировать
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => toggleSync(selectedPhoto)} style={styles.bottomBtn}>
-          <Ionicons name="albums" size={24}/>
+          <Ionicons name="albums" size={24} />
           <Text style={[styles.text, styles.bottomBtnText]}>
             Добавить в альбом
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => deletePhoto()} style={styles.bottomBtn}>
-          <Ionicons name="trash" size={24}/>
+          <Ionicons name="trash" size={24} />
           <Text style={[styles.text, styles.bottomBtnText]}>
             Удалить
           </Text>
@@ -490,7 +518,7 @@ function MainScreen({navigation}) {
         <View>
           <TextInput style={styles.searchBar} placeholder="Search"></TextInput>
         </View>
-        <TouchableOpacity style={styles.iconContainer} onPress={() => {navigation.navigate(SCREENS.SETTINGS)}}>
+        <TouchableOpacity style={styles.iconContainer} onPress={() => { navigation.navigate(SCREENS.SETTINGS) }}>
           <Ionicons name="settings" size={24} color="#8CE8E5" />
         </TouchableOpacity>
       </View>
@@ -533,7 +561,7 @@ function MainScreen({navigation}) {
         </TouchableOpacity>
       </View>
       <View
-        style = {{flex: 1, alignItems: "center", flexWrap: "wrap"}}
+        style={{ flex: 1, alignItems: "center", flexWrap: "wrap" }}
         onTouchStart={(e) => (this.touchX = e.nativeEvent.pageX)}
         onTouchEnd={(e) => {
           menuSwipeHandle(this.touchX, e.nativeEvent.pageX);
@@ -545,7 +573,7 @@ function MainScreen({navigation}) {
           </Animated.View>
         )}
         {selectedTab === "Альбомы" && (
-            <RenderAlbums/>
+          <RenderAlbums />
         )}
         {selectedTab === "Подборки" && (
           <Animated.View style={styles.collectionContainer}>
@@ -553,7 +581,7 @@ function MainScreen({navigation}) {
           </Animated.View>
         )}
       </View>
-      <TouchableOpacity style={styles.takePhotoContainer} onPress={()=>takeImageHandler()}>
+      <TouchableOpacity style={styles.takePhotoContainer} onPress={() => takeImageHandler()}>
         <View style={styles.takePhotoBtn}>
           {selectedTab === "Фото" && (
             <Ionicons name="aperture" size={photoWidth / 3} color="#000000" />
@@ -656,7 +684,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#222222',
-    paddingTop: StatusBar.currentHeight,
+    //paddingTop: StatusBar.currentHeight,
   },
   searchBar: {
     borderRadius: 20,
@@ -665,7 +693,7 @@ const styles = StyleSheet.create({
     height: 35,
     paddingLeft: 8,
   },
-  bottomBtn:{
+  bottomBtn: {
     borderRadius: 10,
     backgroundColor: "#8CE8E5",
     alignItems: "center",
@@ -728,18 +756,18 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     justifyContent: 'space-between',
   },
-  albumWrapper:{
+  albumWrapper: {
     width: folderWidth,
-    height: folderWidth + folderWidth/4,
+    height: folderWidth + folderWidth / 4,
     borderRadius: 30,
     margin: 5,
     backgroundColor: '#8CE8E5',
   },
-  albumText:{
+  albumText: {
     color: '#333333',
     fontSize: 18,
-    marginLeft: folderWidth/8,
-    marginTop: folderWidth/16,
+    marginLeft: folderWidth / 8,
+    marginTop: folderWidth / 16,
     fontWeight: 739
   },
   album: {
@@ -747,11 +775,11 @@ const styles = StyleSheet.create({
     height: folderWidth,
     borderRadius: 30,
   },
-  addAlbum:{
-    width:folderWidth, 
-    height: folderWidth, 
-    backgroundColor:'#707070', 
-    borderRadius:30,
+  addAlbum: {
+    width: folderWidth,
+    height: folderWidth,
+    backgroundColor: '#707070',
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -774,29 +802,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
 
-  syncModalContainer:{
+  syncModalContainer: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: '#333333',
     borderRadius: 30,
-    width: width - width/5,    
-    height: height/2,
+    width: width - width / 5,
+    height: height / 2,
     margin: 20,
     padding: 20,
   },
 
-  syncBtn:{
+  syncBtn: {
     borderRadius: 10,
     borderColor: '#555555',
     borderWidth: 1,
-    width: width - 2*(width/5), 
-    height:40,
+    width: width - 2 * (width / 5),
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 15,
   },
-  modalBackground:{
-    flex: 1, 
+  modalBackground: {
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   fullPhoto: {
@@ -820,19 +848,19 @@ const styles = StyleSheet.create({
     fontWeight: 'medium',
     fontSize: 20,
   },
-  takePhotoBtn:{
+  takePhotoBtn: {
     borderRadius: 50,
-    width: photoWidth/2,
-    height: photoWidth/2,
+    width: photoWidth / 2,
+    height: photoWidth / 2,
     backgroundColor: "#8CE8E5",
-    
+
     justifyContent: 'center',
     alignItems: 'center',
   },
   takePhotoContainer: {
     position: 'absolute',
-    top: height - photoWidth/4,
-    left: width/2 - photoWidth/4,
+    top: height - photoWidth / 4,
+    left: width / 2 - photoWidth / 4,
   },
   syncText: {
     color: '#FFFFFF',
