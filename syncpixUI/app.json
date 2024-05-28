@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "syncpixUI",
+    "name": "Syncpix",
     "plugins": [
       [
         "expo-image-picker",
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos",
-          "cameraPermission":"Allow $(PRODUCT_NAME) to access your camera",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ]
@@ -14,10 +14,10 @@
     "slug": "syncpixUI",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/sync.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.jpg",
+      "image": "./assets/sync.png",
       "resizeMode": "contain",
       "backgroundColor": "#333333"
     },
@@ -26,12 +26,20 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/splash.jpg",
+        "foregroundImage": "./assets/sync.png",
         "backgroundColor": "#333333"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bc25c29d-a946-403f-a819-306f3838d5e1"
+      }
     }
   }
 }

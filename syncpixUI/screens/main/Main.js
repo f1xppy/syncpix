@@ -5,13 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Dimensions,
   Modal,
   FlatList,
   StatusBar,
   Alert,
-  PermissionsAndroid,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -71,10 +69,8 @@ function MainScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState("Фото");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [syncModalVisible, setSyncModalVisible] = useState(false);
-  //const [hasPermission, setHasPermission] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [status, requestPermission] = MediaLibrary.usePermissions();
-  const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [loading, setLoading] = useState(false);
   const [after, setAfter] = useState(null);
   const [hasNextPage, setHasNextPage] = useState(true);
@@ -229,12 +225,12 @@ function MainScreen({ navigation }) {
         const data = response.data;
         setChangesSize(data);
       });
-    } 
-    else{
+    }
+    else {
       setChangesSize(0);
     }
 
-    
+
     setSyncModalVisible(true);
   };
   const getChanges = async () => {
@@ -523,7 +519,7 @@ function MainScreen({ navigation }) {
         </TouchableOpacity>
       </View>
       <View style={styles.tabs}>
-        <TouchableOpacity style={{alignItems: "center", justifyContent: "center",width: width/3}}>
+        <TouchableOpacity style={{ alignItems: "center", justifyContent: "center", width: width / 3 }}>
           <Text
             onPress={() => handleTabPress("Фото")}
             style={[
@@ -535,7 +531,7 @@ function MainScreen({ navigation }) {
             Фото
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{alignItems: "center", justifyContent: "center",width: width/3}}>
+        <TouchableOpacity style={{ alignItems: "center", justifyContent: "center", width: width / 3 }}>
           <Text
             onPress={() => handleTabPress("Альбомы")}
             style={[
@@ -547,7 +543,7 @@ function MainScreen({ navigation }) {
             Альбомы
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{alignItems: "center", justifyContent: "center",width: width/3}}>
+        <TouchableOpacity style={{ alignItems: "center", justifyContent: "center", width: width / 3 }}>
           <Text
             onPress={() => handleTabPress("Подборки")}
             style={[

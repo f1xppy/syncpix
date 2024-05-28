@@ -51,20 +51,14 @@ function SettingsScreen() {
 
   const logIn = async () => {
     let apiUrl = server_address + 'token';
-    //const data = 'grant_type=&username='+login+'&password='+passwd+'scope=&client_id=&client_secret=';
-
 
     let data = new URLSearchParams();
     data.append('username', login);
     data.append('password', passwd);
 
-
-    //data.append('grant_type', passwd);
-
     response = await axios.post(apiUrl, data, { headers: 'Content-type: application/x-www-form-urlencoded' });
     let token = response.data['access_token'];
     let apiUrl2 = server_address + 'users/me?token=' + token;
-
 
     response = await axios.get(apiUrl2);
     data = response.data;
