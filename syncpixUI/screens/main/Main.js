@@ -495,7 +495,7 @@ function MainScreen({navigation}) {
         </TouchableOpacity>
       </View>
       <View style={styles.tabs}>
-        <TouchableOpacity>
+        <TouchableOpacity style={{alignItems: "center", justifyContent: "center",width: width/3}}>
           <Text
             onPress={() => handleTabPress("Фото")}
             style={[
@@ -507,7 +507,7 @@ function MainScreen({navigation}) {
             Фото
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity style={{alignItems: "center", justifyContent: "center",width: width/3}}>
           <Text
             onPress={() => handleTabPress("Альбомы")}
             style={[
@@ -519,7 +519,7 @@ function MainScreen({navigation}) {
             Альбомы
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity style={{alignItems: "center", justifyContent: "center",width: width/3}}>
           <Text
             onPress={() => handleTabPress("Подборки")}
             style={[
