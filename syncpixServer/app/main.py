@@ -229,8 +229,9 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @app.post("/token", tags=["Users"])
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.username, form_data.password)
+async def login_for_access_token(username: str, password: str):
+    db = Session()
+    user = authenticate_user(db, username, password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
