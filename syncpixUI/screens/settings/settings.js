@@ -80,7 +80,13 @@ function SettingsScreen() {
 
   const get_username = async () => {
     const value = await AsyncStorage.getItem('@username');
-    setUsername(value);
+    if (value !== null) {
+      setUsername(value);
+    }
+    else {
+      await AsyncStorage.setItem('@username', 'Guest');
+      setUsername('Guest');
+    }
   }
 
   function SettingsMain() {

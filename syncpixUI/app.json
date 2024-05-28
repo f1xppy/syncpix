@@ -8,6 +8,14 @@
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos",
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
+        }        
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],
@@ -31,7 +39,8 @@
       },
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "com.aesttx.syncpixUI"
     },
     "web": {
       "favicon": "./assets/favicon.png"
