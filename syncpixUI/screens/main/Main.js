@@ -37,7 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const { width, height } = Dimensions.get("window");
-const server_address = 'http://192.168.0.106:8000';
+const server_address = 'http://192.168.1.141:8000';
 const photoWidth = (width - 38) / 3;
 const folderWidth = (width - 50) / 2;
 const clamp = (value, min, max) => {

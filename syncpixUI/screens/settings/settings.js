@@ -27,7 +27,7 @@ function SettingsScreen() {
   const [passwd, setPasswd] = useState('');
   const [confPasswd, setConfPasswd] = useState('');
   const [username, setUsername] = useState('Guest');
-  const server_address = 'http://192.168.0.106:8000/';
+  const server_address = 'http://192.168.1.141:8000/';
   navigation = useNavigation();
 
   const register = async () => {

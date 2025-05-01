@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 class Config(BaseSettings):
     postgres_dsn: str = Field(
-        default='postgresql+psycopg2://postgres:123@localhost:5432/postgres',
+        default='postgresql+psycopg2://postgres:postgres@localhost:5432/postgres',
         env='POSTGRES_DSN',
         alias='POSTGRES_DSN'
     )

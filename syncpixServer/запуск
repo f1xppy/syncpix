@@ -2,4 +2,9 @@ pip install virtualenv
 virtualenv venv
 source venv/scripts/activate
 pip install -r requirements.txt
+pip3 install minio
 fastapi dev app
+
+winpcap необходимо ставить потенциально
+постгря 15.12
+postgres postgres - данные для сервера

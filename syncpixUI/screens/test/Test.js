@@ -22,7 +22,7 @@ export default function Testik() {
   const [devices, setDevices] = useState('none'); // тестовое текстовое поле
   const getDevices = async() => { // получить список устройств
     
-    const apiUrl='http://172.18.0.39:8000/devices?account_id=1';
+    const apiUrl='http://192.168.1.141:8000/devices?account_id=1';
     await axios.get(apiUrl).then(function(response) { 
       const data = response.data;
       const dataString = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
