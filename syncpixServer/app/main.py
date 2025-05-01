@@ -62,8 +62,8 @@ class Device(Base):
     account_id = Column(Integer)
     ip = Column(String)
 
-#Device.__table__.drop(engine)
-#User.__table__.drop(engine)
+Device.__table__.drop(engine)
+User.__table__.drop(engine)
 
 Base.metadata.create_all(engine)
 

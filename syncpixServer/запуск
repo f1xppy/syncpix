@@ -4,6 +4,7 @@ source venv/scripts/activate
 pip install -r requirements.txt
 pip3 install minio
 fastapi dev app
+на внешние порты fastapi run
 
 winpcap необходимо ставить потенциально
 постгря 15.12

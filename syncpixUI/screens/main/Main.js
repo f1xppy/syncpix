@@ -98,7 +98,7 @@ function MainScreen({ navigation }) {
 
   const takeImageHandler = async () => {
     if (status === null) {
-      const mediaLibraryPermission = await requestPermission();
+      const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
       if (mediaLibraryPermission.status !== 'granted') {
         alert('Необходимо разрешение на доступ к медиатеке!');
         return;
@@ -106,7 +106,7 @@ function MainScreen({ navigation }) {
     }
 
     let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.mediaType.Images,
       quality: 1,
       allowsEditing: false,
     });
@@ -126,7 +126,7 @@ function MainScreen({ navigation }) {
 
   const loadPhotos = async () => {
     if (status.status !== 'granted') {
-      await requestPermission();
+      await MediaLibrary.requestPermissionsAsync();
     }
     if (loading || !hasNextPage) return;
     setLoading(true);

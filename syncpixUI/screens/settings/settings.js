@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
+  ScrollView,
   Text,
+  Keyboard,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -9,13 +11,14 @@ import {
   Modal,
   StatusBar,
   Image,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from '@react-navigation/native';
 import SCREENS from "..";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import useDebounce from "../../hooks/useDebounce";
 const { width, height } = Dimensions.get("window");
 
 function SettingsScreen() {
@@ -25,10 +28,13 @@ function SettingsScreen() {
   const [login, setLogin] = useState('');
   const [email, setEmail] = useState('');
   const [passwd, setPasswd] = useState('');
+  const [passwdInput, setPasswdInput] = useState('');
   const [confPasswd, setConfPasswd] = useState('');
   const [username, setUsername] = useState('Guest');
+  const [test, setTest] = useState('');
   const server_address = 'http://192.168.1.141:8000/';
   navigation = useNavigation();
+
 
   const register = async () => {
 
@@ -50,8 +56,10 @@ function SettingsScreen() {
   };
 
   const logIn = async () => {
+    Keyboard.dismiss();
     let apiUrl = server_address + 'token?username=' + login + '&password=' + passwd;
-
+    console.log(login);
+    console.log(passwd);
     //let data = new URLSearchParams();
     //data.append('username', login);
     //data.append('password', passwd);
@@ -88,7 +96,7 @@ function SettingsScreen() {
       setUsername('Guest');
     }
   }
-
+  
   function SettingsMain() {
     get_username();
     return (
@@ -203,14 +211,12 @@ function SettingsScreen() {
               >
                 <Ionicons name="chevron-back" size={34} style={styles.backIcon} />
               </TouchableOpacity>
-              <View style={styles.modalElem}>
+              <ScrollView style={styles.modalElem} keyboardShouldPersistTaps='handled'>
                 <Text style={[styles.text, styles.modalTxt]}>Login</Text>
                 <TextInput style={styles.modalInput} onEndEditing={(value) => setLogin(value.nativeEvent.text)} placeholder="...">{login}</TextInput>
-              </View>
-              <View style={styles.modalElem}>
                 <Text style={[styles.text, styles.modalTxt]}>Password</Text>
                 <TextInput style={styles.modalInput} onEndEditing={(value) => setPasswd(value.nativeEvent.text)} secureTextEntry={true} placeholder="...">{passwd}</TextInput>
-              </View>
+              </ScrollView>
               <TouchableOpacity onPress={() => logIn()}>
                 <View style={[styles.applyBtn, styles.modalElem]}>
                   <Text style={[styles.text, styles.applyTxt]}>Войти</Text>
@@ -219,7 +225,6 @@ function SettingsScreen() {
             </View>
           </View>
         </Modal>
-
         <Modal
           visible={isRegistering === true}
           animationType="fade"
