@@ -36,7 +36,7 @@ const clamp = (value, min, max) => {
   return Math.min(Math.max(value, min), max);
 };
 
-const AlbumContents = ({ route}) => {
+const AlbumContents = ({ navigation, route }) => {
   const { albumId, albumTitle } = route.params;
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);

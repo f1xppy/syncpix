@@ -27,6 +27,7 @@
     "react-dom": "19.0.0",
     "react-native": "0.79.1",
     "react-native-device-info": "^11.1.0",
+    "react-native-fast-tflite": "^1.6.1",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-network-info": "^5.2.1",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },
   "private": true,
